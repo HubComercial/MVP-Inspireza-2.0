@@ -32,6 +32,17 @@
   --radius-sm: 14px;
   --radius-md: 22px;
   --radius-lg: 32px;
+  --gold:#D9B872;
+  --gold-soft:#EAD9AE;
+  --gold-deep:#B8935A;
+  --premium-1:#181A33;
+  --premium-2:#2C2955;
+  --premium-3:#4A3A72;
+  --premium-ink:#F3F1FB;
+  --premium-ink-soft:rgba(243,241,251,0.68);
+  --glass:rgba(255,255,255,0.07);
+  --glass-strong:rgba(255,255,255,0.12);
+  --glass-border:rgba(255,255,255,0.16);
   --serif: 'Fraunces', Georgia, serif;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ease: cubic-bezier(.22,1,.36,1);
@@ -106,6 +117,15 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 .logo-word{ font-family:var(--serif); font-weight:440; font-size:clamp(38px,10vw,54px); letter-spacing:-0.01em; color:var(--ink); }
 .tagline{ margin-top:14px; color:var(--ink-soft); font-size:16.5px; line-height:1.55; max-width:340px; }
 .tagline em{ font-style:italic; color:var(--ink); }
+
+.streak-badge{
+  display:inline-flex; align-items:center; gap:7px; background:var(--white);
+  padding:8px 16px 8px 12px; border-radius:100px; box-shadow:var(--shadow-sm);
+  font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:26px;
+  animation:cardIn .6s var(--ease) both; animation-delay:.15s;
+}
+.streak-badge .flame{ font-size:15px; }
+.streak-badge b{ color:var(--ink); font-weight:700; }
 
 .hero-cta-wrap{ margin-top:46px; width:100%; display:flex; flex-direction:column; align-items:center; gap:14px; }
 .btn-primary{
@@ -206,45 +226,82 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 .challenge-icon{ font-size:22px; flex:0 0 auto; }
 .challenge-text{ font-size:15px; line-height:1.55; }
 
-.yt-wrap{ position:relative; width:100%; padding-top:56.25%; border-radius:var(--radius-sm); overflow:hidden; }
+.yt-wrap{ position:relative; width:100%; padding-top:56.25%; border-radius:var(--radius-sm); overflow:hidden; box-shadow:var(--shadow-sm); }
 .yt-wrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.yt-caption{ font-size:12px; color:var(--ink-faint); margin-top:10px; text-align:center; }
 
 .pkg-cta-wrap{ margin-top:8px; text-align:center; }
 .pkg-cta-sub{ font-size:13px; color:var(--ink-faint); margin-top:12px; }
 
 /* ============================================================
-   PREMIUM
+   PREMIUM — tela escura, sofisticada, com dourado
 =============================================================== */
-.premium-hero{ text-align:center; padding:10px 0 8px; }
-.premium-kicker{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-deep); font-weight:700; margin-bottom:12px; }
-.premium-title{ font-family:var(--serif); font-size:clamp(26px,7vw,32px); line-height:1.25; margin-bottom:14px; }
-.premium-lede{ font-size:15.5px; color:var(--ink-soft); line-height:1.6; max-width:400px; margin:0 auto; }
+#screen-premium, #screen-waitlist{
+  background:
+    radial-gradient(900px 600px at 85% -10%, rgba(217,184,114,0.16) 0%, transparent 55%),
+    radial-gradient(700px 500px at 0% 100%, rgba(124,140,216,0.18) 0%, transparent 50%),
+    linear-gradient(165deg, var(--premium-1) 0%, var(--premium-2) 55%, var(--premium-3) 100%);
+  color:var(--premium-ink);
+  position:relative;
+  overflow:hidden;
+}
+#screen-premium::before, #screen-waitlist::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image: radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.5) 50%, transparent 51%),
+                     radial-gradient(1.5px 1.5px at 78% 18%, rgba(255,255,255,.35) 50%, transparent 51%),
+                     radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,.4) 50%, transparent 51%),
+                     radial-gradient(1.5px 1.5px at 90% 75%, rgba(255,255,255,.3) 50%, transparent 51%),
+                     radial-gradient(1px 1px at 35% 85%, rgba(255,255,255,.3) 50%, transparent 51%);
+  opacity:.8;
+}
+#screen-premium .back-btn, #screen-waitlist .back-btn{ background:var(--glass); color:var(--premium-ink); backdrop-filter:blur(8px); border:1px solid var(--glass-border); }
 
-.transform-row{ display:flex; gap:10px; margin:28px 0 6px; }
-.transform-col{ flex:1; background:var(--white); border-radius:var(--radius-sm); padding:18px 14px; box-shadow:var(--shadow-sm); }
-.transform-col h4{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:10px; font-weight:700;}
-.transform-col.after h4{ color:var(--accent-deep); }
-.transform-col p{ font-size:13.5px; line-height:1.6; color:var(--ink-soft); }
-.transform-col.after{ background:linear-gradient(160deg,#fff,var(--lilac)); }
+.premium-hero{ text-align:center; padding:10px 0 8px; position:relative; z-index:1; }
+.premium-kicker{
+  display:inline-flex; align-items:center; gap:6px; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--gold-soft); font-weight:700; margin-bottom:16px; padding:6px 14px; border-radius:100px;
+  background:var(--glass); border:1px solid var(--glass-border);
+}
+.premium-title{ font-family:var(--serif); font-size:clamp(27px,7.5vw,34px); line-height:1.22; margin-bottom:14px; color:#fff; }
+.premium-lede{ font-size:15.5px; color:var(--premium-ink-soft); line-height:1.6; max-width:400px; margin:0 auto; }
 
-.benefits-grid{ display:flex; flex-direction:column; gap:10px; margin:22px 0 8px; }
-.benefit-row{ display:flex; gap:14px; align-items:flex-start; background:var(--white); border-radius:var(--radius-sm); padding:16px 18px; box-shadow:var(--shadow-sm); }
-.benefit-icon{ width:38px; height:38px; border-radius:12px; background:var(--lilac); display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto; }
-.benefit-copy h5{ font-size:14.5px; font-weight:700; margin-bottom:3px; }
-.benefit-copy p{ font-size:13px; color:var(--ink-soft); line-height:1.5; }
+.transform-row{ display:flex; gap:10px; margin:30px 0 6px; position:relative; z-index:1; }
+.transform-col{ flex:1; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:18px 14px; backdrop-filter:blur(10px); }
+.transform-col h4{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--premium-ink-soft); margin-bottom:10px; font-weight:700;}
+.transform-col.after h4{ color:var(--gold-soft); }
+.transform-col p{ font-size:13.5px; line-height:1.6; color:var(--premium-ink-soft); }
+.transform-col.after{ background:linear-gradient(160deg, rgba(217,184,114,0.16), rgba(217,184,114,0.04)); border-color:rgba(217,184,114,0.35); }
+.transform-col.after p{ color:rgba(243,241,251,0.85); }
 
-.quote-block{ text-align:center; margin:30px 0; padding:0 10px; }
-.quote-block p{ font-family:var(--serif); font-style:italic; font-size:19px; line-height:1.55; color:var(--ink); }
-.quote-block span{ display:block; margin-top:10px; font-size:12.5px; color:var(--ink-faint); font-style:normal; }
+.benefits-grid{ display:flex; flex-direction:column; gap:10px; margin:24px 0 8px; position:relative; z-index:1; }
+.benefit-row{ display:flex; gap:14px; align-items:flex-start; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:16px 18px; backdrop-filter:blur(10px); transition:background .2s var(--ease); }
+.benefit-row:hover{ background:var(--glass-strong); }
+.benefit-icon{ width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, rgba(217,184,114,0.35), rgba(217,184,114,0.12)); display:flex; align-items:center; justify-content:center; font-size:18px; flex:0 0 auto; border:1px solid rgba(217,184,114,0.3); }
+.benefit-copy h5{ font-size:14.5px; font-weight:700; margin-bottom:3px; color:#fff; }
+.benefit-copy p{ font-size:13px; color:var(--premium-ink-soft); line-height:1.5; }
 
-.premium-cta-block{ margin-top:8px; text-align:center; }
-.premium-note{ font-size:12px; color:var(--ink-faint); margin-top:14px; line-height:1.5; }
+.quote-block{ text-align:center; margin:34px 0; padding:26px 20px; position:relative; z-index:1; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius-md); backdrop-filter:blur(10px); }
+.quote-block p{ font-family:var(--serif); font-style:italic; font-size:19px; line-height:1.55; color:#fff; }
+.quote-block span{ display:block; margin-top:10px; font-size:12.5px; color:var(--gold-soft); font-style:normal; letter-spacing:.04em; }
+
+.premium-cta-block{ margin-top:12px; text-align:center; position:relative; z-index:1; }
+.premium-note{ font-size:12px; color:var(--premium-ink-soft); margin-top:14px; line-height:1.5; }
+
+.btn-gold{
+  width:100%; max-width:340px; padding:18px 28px; border-radius:100px;
+  background:linear-gradient(135deg, var(--gold-soft) 0%, var(--gold-deep) 100%);
+  color:#2A2110; font-weight:700; font-size:16.5px; box-shadow:0 16px 40px rgba(217,184,114,0.28);
+  transition:transform .25s var(--ease), box-shadow .25s var(--ease);
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-gold:hover{ transform:translateY(-2px); box-shadow:0 20px 50px rgba(217,184,114,0.38); }
+.btn-gold:active{ transform:translateY(0) scale(.98); }
 
 /* ============================================================
    WAITLIST SUCCESS
 =============================================================== */
 #screen-success{ justify-content:center; align-items:center; text-align:center; }
-.success-check{ width:84px; height:84px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent-deep)); display:flex; align-items:center; justify-content:center; margin-bottom:26px; box-shadow:var(--shadow-md); animation:popIn .5s var(--ease) both; }
+.success-check{ width:84px; height:84px; border-radius:50%; background:linear-gradient(135deg,var(--gold-soft),var(--gold-deep)); display:flex; align-items:center; justify-content:center; margin-bottom:26px; box-shadow:0 16px 40px rgba(217,184,114,0.35); animation:popIn .5s var(--ease) both; }
 @keyframes popIn{ from{transform:scale(.5); opacity:0;} to{transform:scale(1); opacity:1;} }
 .success-title{ font-family:var(--serif); font-size:26px; margin-bottom:12px; }
 .success-text{ color:var(--ink-soft); font-size:15px; line-height:1.6; max-width:320px; }
@@ -253,15 +310,26 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
    FORM (email capture on waitlist)
 =============================================================== */
 .email-input{
-  width:100%; padding:16px 18px; border-radius:16px; border:1.5px solid var(--line);
-  background:var(--white); font-size:15.5px; font-family:inherit; color:var(--ink);
-  transition:border-color .2s var(--ease), box-shadow .2s var(--ease); margin-bottom:14px;
+  width:100%; padding:17px 20px; border-radius:16px; border:1.5px solid var(--glass-border);
+  background:var(--glass); backdrop-filter:blur(10px); font-size:15.5px; font-family:inherit; color:#fff;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease); margin-bottom:14px;
 }
-.email-input:focus{ border-color:var(--accent); box-shadow:0 0 0 4px rgba(124,140,216,0.15); }
-.email-input::placeholder{ color:var(--ink-faint); }
+.email-input:focus{ border-color:var(--gold-soft); background:var(--glass-strong); box-shadow:0 0 0 4px rgba(217,184,114,0.16); }
+.email-input::placeholder{ color:var(--premium-ink-soft); }
 
-.footer-nav{ margin-top:auto; padding-top:22px; text-align:center; }
+.waitlist-perks{ display:flex; flex-direction:column; gap:10px; margin:22px 0 26px; position:relative; z-index:1; }
+.perk-row{ display:flex; gap:10px; align-items:center; font-size:13.5px; color:var(--premium-ink-soft); }
+.perk-check{ width:20px; height:20px; border-radius:50%; background:rgba(217,184,114,0.18); border:1px solid rgba(217,184,114,0.4); color:var(--gold-soft); display:flex; align-items:center; justify-content:center; font-size:11px; flex:0 0 auto; }
+
+.footer-nav{ margin-top:auto; padding-top:22px; text-align:center; position:relative; z-index:1; }
 .link-quiet{ font-size:13px; color:var(--ink-faint); text-decoration:underline; }
+
+#screen-waitlist .head-block{ position:relative; z-index:1; }
+#screen-waitlist .head-eyebrow{ color:var(--gold-soft); }
+#screen-waitlist .head-title{ color:#fff; }
+#screen-waitlist .head-sub{ color:var(--premium-ink-soft); }
+#screen-waitlist form{ position:relative; z-index:1; }
+#screen-waitlist .link-quiet{ color:var(--premium-ink-soft); }
 
 @media (min-width:400px){ .emo-grid{ gap:14px; } }
 </style>
@@ -275,6 +343,9 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 =============================================================== -->
 <section class="screen active" id="screen-hero">
   <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div class="streak-badge" id="streakBadge" style="display:none;">
+      <span class="flame">🔥</span> <span id="streakText"></span>
+    </div>
     <p class="eyebrow">respira</p>
     <div class="orb-wrap">
       <div class="orb-ring"></div>
@@ -388,6 +459,7 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
   <div class="section-card">
     <p class="section-label">🎧 Música ambiente</p>
     <div class="yt-wrap"><iframe id="pkgVideo" src="" title="Música ambiente" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+    <p class="yt-caption" id="pkgVideoCaption"></p>
   </div>
 
   <div class="pkg-cta-wrap">
@@ -452,7 +524,7 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
   </div>
 
   <div class="premium-cta-block">
-    <button class="btn-primary" onclick="goTo('screen-waitlist')">Entrar na lista de espera</button>
+    <button class="btn-gold" onclick="goTo('screen-waitlist')">✨ Entrar na lista de espera</button>
     <p class="premium-note">Sem cobrança agora. Você será avisado assim que o Respira+ estiver disponível.</p>
   </div>
 </section>
@@ -471,9 +543,14 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
     <h2 class="head-title">Onde podemos te encontrar?</h2>
     <p class="head-sub">Vamos te avisar assim que o Respira+ abrir. Nada de spam — só cuidado, quando for a hora certa.</p>
   </div>
+  <div class="waitlist-perks">
+    <div class="perk-row"><span class="perk-check">✓</span> Acesso antecipado antes do lançamento oficial</div>
+    <div class="perk-row"><span class="perk-check">✓</span> Condição especial de fundador, só para quem entrar agora</div>
+    <div class="perk-row"><span class="perk-check">✓</span> Zero spam — só um aviso quando estiver pronto</div>
+  </div>
   <form onsubmit="submitWaitlist(event)">
     <input class="email-input" type="email" required placeholder="seu@email.com" id="waitlistEmail">
-    <button class="btn-primary" type="submit" style="max-width:none;">Confirmar minha vaga</button>
+    <button class="btn-gold" type="submit" style="max-width:none;">Confirmar minha vaga</button>
   </form>
   <div class="footer-nav">
     <button class="link-quiet" onclick="goTo('screen-package')">Voltar para o meu pacote do dia</button>
@@ -531,8 +608,14 @@ const BREATHING = [
   {name:'Respiração calma 6-2-7', steps:[{l:'Inspire',s:6},{l:'Segure',s:2},{l:'Expire bem devagar',s:7}]}
 ];
 
-/* pool de músicas ambiente (YouTube, Lofi Girl) alternadas pelo índice do dia */
-const VIDEOS = ['jfKfPfyJRdk','rUxyKA_-grg','CFGLoQIhmow','gnZImHvA0ME','n61ULEU7CO0'];
+/* pool de músicas ambiente — jazz animado, tocando em loop enquanto a pessoa está no site */
+const VIDEOS = [
+  {id:'3XbEUv_MCj0', label:'Jazz Loungebar Radio · ao vivo'},
+  {id:'G4J8asIf75k', label:'Cafe Jazz & Bossa Nova · clima leve'},
+  {id:'Dx5qFachd3A', label:'Jazz Piano Radio · ao vivo'},
+  {id:'SORD03t7nlo', label:'Smooth Jazz & Bossa Nova · ao vivo'},
+  {id:'fEvM-OUbaKs', label:'Coffee Jazz Radio · ao vivo'}
+];
 
 /* CONTEÚDO — 12 emoções x 5 variações = 60 combinações, alternadas pela data do sistema */
 const CONTENT = {
@@ -687,7 +770,7 @@ function buildPackage(){
   state.variantIndex = variantIndex;
   const pkg = CONTENT[state.emotionId][variantIndex];
   const breathing = BREATHING[variantIndex];
-  const videoId = VIDEOS[variantIndex];
+  const video = VIDEOS[variantIndex];
 
   document.getElementById('pkgTitle').textContent = pkg.t;
   document.getElementById('pkgText').textContent = pkg.x;
@@ -704,7 +787,8 @@ function buildPackage(){
   document.getElementById('verseRef').textContent = pkg.v.ref;
   document.getElementById('pkgPhrase').textContent = '"'+pkg.f+'"';
   document.getElementById('pkgChallenge').textContent = pkg.d;
-  document.getElementById('pkgVideo').src = 'https://www.youtube.com/embed/'+videoId+'?rel=0';
+  document.getElementById('pkgVideo').src = 'https://www.youtube.com/embed/' + video.id + '?rel=0&autoplay=0';
+  document.getElementById('pkgVideoCaption').textContent = video.label;
 
   document.getElementById('breathPattern').textContent = breathing.name;
   resetBreathing();
@@ -787,9 +871,50 @@ function submitWaitlist(evt){
   goTo('screen-success');
 }
 
+/* ============================================================
+   CONTADOR DE DIAS (STREAK) — incentiva o retorno amanhã
+   Usa localStorage para lembrar o usuário entre visitas.
+=============================================================== */
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function updateStreak(){
+  try{
+    const raw = localStorage.getItem('respira_streak');
+    const today = todayKey();
+    let data = raw ? JSON.parse(raw) : null;
+
+    if(!data){
+      data = { streak:1, lastVisit:today };
+    } else if(data.lastVisit === today){
+      /* já visitou hoje, mantém */
+    } else {
+      const last = new Date(data.lastVisit.split('-')[0], data.lastVisit.split('-')[1]-1, data.lastVisit.split('-')[2]);
+      const now = new Date();
+      const diffDays = Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate()) - new Date(last.getFullYear(),last.getMonth(),last.getDate())) / 86400000);
+      data.streak = (diffDays === 1) ? data.streak + 1 : 1;
+      data.lastVisit = today;
+    }
+    localStorage.setItem('respira_streak', JSON.stringify(data));
+
+    const badge = document.getElementById('streakBadge');
+    const text = document.getElementById('streakText');
+    if(data.streak >= 1){
+      text.innerHTML = data.streak === 1
+        ? 'Primeiro dia por aqui — <b>bem-vindo(a)</b>'
+        : '<b>'+data.streak+' dias seguidos</b> cuidando de você';
+      badge.style.display='inline-flex';
+    }
+  } catch(e){
+    /* localStorage indisponível (ex: pré-visualização em sandbox) — segue sem o selo */
+  }
+}
+
 /* Inicialização */
 renderEmotionGrid();
+updateStreak();
 </script>
 </body>
 </html>
-
