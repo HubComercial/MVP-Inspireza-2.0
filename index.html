@@ -35,6 +35,8 @@
   --gold:#D9B872;
   --gold-soft:#EAD9AE;
   --gold-deep:#B8935A;
+  --mint:#9FE3C4;
+  --mint-deep:#4FAE82;
   --premium-1:#181A33;
   --premium-2:#2C2955;
   --premium-3:#4A3A72;
@@ -212,6 +214,8 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 
 .breath-wrap{ display:flex; flex-direction:column; align-items:center; text-align:center; }
 .breath-orb-outer{ width:150px; height:150px; display:flex; align-items:center; justify-content:center; margin:6px 0 18px; position:relative; }
+.breath-orb-outer.big{ width:220px; height:220px; margin:0 0 30px; }
+.breath-orb-outer.big .breath-orb{ width:130px; height:130px; }
 .breath-orb{ width:90px; height:90px; border-radius:50%; background:radial-gradient(circle at 32% 28%, #fff, var(--accent) 45%, var(--accent-2)); box-shadow:0 14px 40px rgba(124,140,216,.35); transition:transform 1s ease, box-shadow 1s ease; }
 .breath-label{ font-size:14px; color:var(--ink-soft); font-weight:600; min-height:20px; margin-bottom:4px;}
 .breath-count{ font-family:var(--serif); font-size:15px; color:var(--ink-faint); min-height:20px; }
@@ -221,6 +225,52 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
   transition:all .2s var(--ease);
 }
 .btn-ghost:hover{ background:var(--lilac); }
+
+.breath-trigger-card{ }
+.breath-trigger-row{ display:flex; align-items:center; gap:14px; }
+.breath-mini-orb{ width:44px; height:44px; border-radius:50%; flex:0 0 auto; background:radial-gradient(circle at 32% 28%, #fff, var(--accent) 45%, var(--accent-2)); animation:breatheHero 5s ease-in-out infinite; box-shadow:0 8px 22px rgba(124,140,216,.3); }
+.breath-trigger-title{ font-weight:700; font-size:14.5px; margin-bottom:2px; }
+.breath-trigger-sub{ font-size:12.5px; color:var(--ink-soft); line-height:1.4; }
+
+/* ---- overlay em tela cheia da respiração ---- */
+.breath-overlay{
+  display:none; position:fixed; inset:0; z-index:900;
+  flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  padding:28px; gap:0;
+  background:
+    radial-gradient(1000px 700px at 20% 0%, var(--lilac) 0%, transparent 55%),
+    radial-gradient(900px 650px at 100% 100%, var(--blue) 0%, transparent 55%),
+    var(--bg-0);
+  animation:screenIn .4s var(--ease) both;
+}
+.breath-overlay.active{ display:flex; }
+.breath-overlay-close{
+  position:absolute; top:24px; right:24px; width:40px; height:40px; border-radius:50%;
+  background:var(--white); box-shadow:var(--shadow-sm); font-size:15px; color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center; transition:transform .2s var(--ease);
+}
+.breath-overlay-close:hover{ transform:scale(1.08); }
+.breath-overlay-pattern{ font-size:13.5px; color:var(--ink-faint); font-weight:600; letter-spacing:.02em; margin-bottom:8px; text-transform:uppercase; }
+.breath-overlay-btn{ margin-top:8px; }
+
+/* ---- check-in de conclusão ---- */
+.checkin-card{ text-align:center; }
+.checkin-text{ font-size:14.5px; color:var(--ink-soft); line-height:1.5; margin-bottom:16px; }
+.btn-check{
+  width:100%; padding:16px 24px; border-radius:100px;
+  background:linear-gradient(135deg, var(--mint) 0%, var(--mint-deep) 100%);
+  color:#0F3D2A; font-weight:700; font-size:15.5px; box-shadow:0 12px 30px rgba(143,217,182,0.35);
+  transition:transform .22s var(--ease), box-shadow .22s var(--ease), opacity .22s var(--ease);
+}
+.btn-check:hover{ transform:translateY(-2px); box-shadow:0 16px 38px rgba(143,217,182,0.45); }
+.btn-check:active{ transform:translateY(0) scale(.98); }
+.btn-check.done{ background:linear-gradient(135deg, #E4F5EC, #D3EEE0); color:var(--mint-deep); box-shadow:none; cursor:default; transform:none; }
+.btn-check.done:hover{ transform:none; box-shadow:none; }
+
+/* ---- confete (recompensa leve) ---- */
+.confetti-container{ position:fixed; inset:0; pointer-events:none; z-index:1200; }
+.confetti-piece{ position:fixed; width:8px; height:8px; border-radius:2px; opacity:1; animation:confettiFly .95s ease-out forwards; }
+@keyframes confettiFly{ to{ transform:translate(var(--dx), var(--dy)) rotate(360deg); opacity:0; } }
 
 .challenge-card{ display:flex; gap:14px; align-items:flex-start; }
 .challenge-icon{ font-size:22px; flex:0 0 auto; }
@@ -423,14 +473,17 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
     <ol class="plan-list" id="pkgPlan"></ol>
   </div>
 
-  <!-- Respiração guiada -->
-  <div class="section-card breath-wrap">
-    <p class="section-label" style="align-self:flex-start;">🌬️ Respiração guiada</p>
-    <p class="breath-pattern" id="breathPattern"></p>
-    <div class="breath-orb-outer"><div class="breath-orb" id="breathOrb"></div></div>
-    <p class="breath-label" id="breathLabel">Toque para começar</p>
-    <p class="breath-count" id="breathCount"></p>
-    <button class="btn-ghost" id="breathBtn" onclick="toggleBreathing()">Iniciar respiração</button>
+  <!-- Respiração guiada — abre em tela cheia para foco total -->
+  <div class="section-card breath-trigger-card">
+    <p class="section-label">🌬️ Respiração guiada</p>
+    <div class="breath-trigger-row">
+      <div class="breath-mini-orb"></div>
+      <div>
+        <p class="breath-trigger-title" id="breathPatternPreview"></p>
+        <p class="breath-trigger-sub">Toque para abrir em tela cheia e focar só na respiração.</p>
+      </div>
+    </div>
+    <button class="btn-primary" style="max-width:none; margin-top:16px;" onclick="openBreathOverlay()">Iniciar respiração</button>
   </div>
 
   <!-- Versículo -->
@@ -462,11 +515,30 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
     <p class="yt-caption" id="pkgVideoCaption"></p>
   </div>
 
+  <!-- Check-in de conclusão do dia -->
+  <div class="section-card checkin-card" id="checkinCard">
+    <p class="section-label">✅ Fechamento do dia</p>
+    <p class="checkin-text" id="checkinText">Você chegou até aqui. Que tal marcar esse momento como concluído?</p>
+    <button class="btn-check" id="checkinBtn" onclick="completeCheckin(event)">Concluí meu momento de hoje</button>
+  </div>
+
   <div class="pkg-cta-wrap">
     <button class="btn-primary" onclick="goTo('screen-premium')">Quero continuar minha reconstrução emocional</button>
     <p class="pkg-cta-sub">Um novo pacote te espera amanhã.</p>
   </div>
 </section>
+
+<!-- ============================================================
+     RESPIRAÇÃO — overlay em tela cheia (foco total, sem distrações)
+=============================================================== -->
+<div class="breath-overlay" id="breathOverlay">
+  <button class="breath-overlay-close" onclick="closeBreathOverlay()" aria-label="Fechar respiração">✕</button>
+  <p class="breath-overlay-pattern" id="breathPattern"></p>
+  <div class="breath-orb-outer big"><div class="breath-orb" id="breathOrb"></div></div>
+  <p class="breath-label" id="breathLabel">Toque para começar</p>
+  <p class="breath-count" id="breathCount"></p>
+  <button class="btn-ghost breath-overlay-btn" onclick="closeBreathOverlay()">Concluir</button>
+</div>
 
 <!-- ============================================================
      PREMIUM
@@ -791,7 +863,9 @@ function buildPackage(){
   document.getElementById('pkgVideoCaption').textContent = video.label;
 
   document.getElementById('breathPattern').textContent = breathing.name;
+  document.getElementById('breathPatternPreview').textContent = breathing.name;
   resetBreathing();
+  refreshCheckinState();
 }
 
 /* ============================================================
@@ -823,18 +897,21 @@ function resetBreathing(){
   breathTimer=null;
   state.breathing=false;
   breathStepIdx=0;
-  document.getElementById('breathBtn').textContent='Iniciar respiração';
   document.getElementById('breathLabel').textContent='Toque para começar';
   document.getElementById('breathCount').textContent='';
   document.getElementById('breathOrb').style.transform='scale(1)';
 }
 
-function toggleBreathing(){
-  if(state.breathing){ resetBreathing(); return; }
+function openBreathOverlay(){
+  document.getElementById('breathOverlay').classList.add('active');
   state.breathing=true;
   breathStepIdx=0;
-  document.getElementById('breathBtn').textContent='Parar';
   runBreathStep();
+}
+
+function closeBreathOverlay(){
+  document.getElementById('breathOverlay').classList.remove('active');
+  resetBreathing();
 }
 
 function runBreathStep(){
@@ -861,6 +938,63 @@ function runBreathStep(){
       if(state.breathing) runBreathStep();
     }
   },1000);
+}
+
+/* ============================================================
+   CHECK-IN DE CONCLUSÃO — recompensa leve ao fechar o dia
+   (independente do contador de dias, guarda só o "feito" de hoje)
+=============================================================== */
+function refreshCheckinState(){
+  const btn = document.getElementById('checkinBtn');
+  const text = document.getElementById('checkinText');
+  let doneToday = false;
+  try{ doneToday = localStorage.getItem('respira_checkin_date') === todayKey(); } catch(e){}
+  if(doneToday){
+    btn.textContent = '✓ Concluído hoje';
+    btn.classList.add('done');
+    btn.disabled = true;
+    text.textContent = 'Que bom que você cuidou de você hoje. Volte amanhã para o próximo pacote.';
+  } else {
+    btn.textContent = 'Concluí meu momento de hoje';
+    btn.classList.remove('done');
+    btn.disabled = false;
+    text.textContent = 'Você chegou até aqui. Que tal marcar esse momento como concluído?';
+  }
+}
+
+function completeCheckin(evt){
+  const btn = document.getElementById('checkinBtn');
+  if(btn.disabled) return;
+  try{ localStorage.setItem('respira_checkin_date', todayKey()); } catch(e){}
+  burstConfetti(btn);
+  refreshCheckinState();
+}
+
+function burstConfetti(originEl){
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+  const rect = originEl.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const colors = ['#7C8CD8','#9C8FCB','#D9B872','#9FE3C4','#DCE9F8'];
+  for(let i=0;i<26;i++){
+    const p = document.createElement('span');
+    p.className = 'confetti-piece';
+    const angle = Math.random()*2*Math.PI;
+    const dist = 70 + Math.random()*100;
+    const dx = Math.cos(angle)*dist;
+    const dy = Math.sin(angle)*dist - 50;
+    p.style.left = cx+'px';
+    p.style.top = cy+'px';
+    p.style.background = colors[i % colors.length];
+    p.style.borderRadius = (i % 3 === 0) ? '50%' : '2px';
+    p.style.setProperty('--dx', dx+'px');
+    p.style.setProperty('--dy', dy+'px');
+    p.style.animationDelay = (Math.random()*0.12)+'s';
+    container.appendChild(p);
+  }
+  setTimeout(()=>container.remove(), 1500);
 }
 
 /* ============================================================
