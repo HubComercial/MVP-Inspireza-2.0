@@ -272,6 +272,39 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 .confetti-piece{ position:fixed; width:8px; height:8px; border-radius:2px; opacity:1; animation:confettiFly .95s ease-out forwards; }
 @keyframes confettiFly{ to{ transform:translate(var(--dx), var(--dy)) rotate(360deg); opacity:0; } }
 
+/* ---- banner promocional (e-book) ---- */
+.promo-overlay{
+  display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center;
+  padding:24px; background:rgba(20,18,38,0.55); backdrop-filter:blur(4px);
+  animation:fadeBg .3s var(--ease) both;
+}
+.promo-overlay.active{ display:flex; }
+@keyframes fadeBg{ from{opacity:0;} to{opacity:1;} }
+.promo-card{
+  position:relative; width:100%; max-width:380px; border-radius:var(--radius-lg); padding:30px 26px 26px;
+  background:linear-gradient(165deg, var(--premium-1) 0%, var(--premium-2) 55%, var(--premium-3) 100%);
+  color:var(--premium-ink); box-shadow:var(--shadow-lg); text-align:center;
+  animation:promoIn .4s var(--ease) both;
+}
+@keyframes promoIn{ from{opacity:0; transform:translateY(18px) scale(.97);} to{opacity:1; transform:translateY(0) scale(1);} }
+.promo-close{
+  position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:50%;
+  background:var(--glass); border:1px solid var(--glass-border); color:var(--premium-ink);
+  display:flex; align-items:center; justify-content:center; font-size:13px; transition:transform .2s var(--ease);
+}
+.promo-close:hover{ transform:scale(1.08); }
+.promo-tag{
+  display:inline-flex; font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  color:var(--gold-soft); background:var(--glass); border:1px solid var(--glass-border);
+  padding:6px 14px; border-radius:100px; margin-bottom:16px;
+}
+.promo-title{ font-family:var(--serif); font-size:23px; color:#fff; line-height:1.3; margin-bottom:10px; }
+.promo-text{ font-size:13.5px; color:var(--premium-ink-soft); line-height:1.55; margin-bottom:18px; }
+.promo-price{ display:flex; align-items:baseline; justify-content:center; gap:10px; margin-bottom:20px; }
+.promo-old{ font-size:14px; color:var(--premium-ink-soft); text-decoration:line-through; }
+.promo-new{ font-size:26px; font-weight:700; color:var(--gold-soft); font-family:var(--serif); }
+.promo-dismiss{ display:block; margin:14px auto 0; font-size:12.5px; color:var(--premium-ink-soft); text-decoration:underline; }
+
 .challenge-card{ display:flex; gap:14px; align-items:flex-start; }
 .challenge-icon{ font-size:22px; flex:0 0 auto; }
 .challenge-text{ font-size:15px; line-height:1.55; }
@@ -366,6 +399,7 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 }
 .email-input:focus{ border-color:var(--gold-soft); background:var(--glass-strong); box-shadow:0 0 0 4px rgba(217,184,114,0.16); }
 .email-input::placeholder{ color:var(--premium-ink-soft); }
+.waitlist-error{ font-size:12.5px; color:#F3A6A6; margin-top:-4px; margin-bottom:10px; text-align:center; }
 
 .waitlist-perks{ display:flex; flex-direction:column; gap:10px; margin:22px 0 26px; position:relative; z-index:1; }
 .perk-row{ display:flex; gap:10px; align-items:center; font-size:13.5px; color:var(--premium-ink-soft); }
@@ -541,6 +575,21 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
 </div>
 
 <!-- ============================================================
+     BANNER PROMOCIONAL — e-book (aparece após o check-in do dia)
+=============================================================== -->
+<div class="promo-overlay" id="promoOverlay">
+  <div class="promo-card">
+    <button class="promo-close" onclick="closePromo()" aria-label="Fechar">✕</button>
+    <span class="promo-tag">🎁 Oferta especial para você</span>
+    <p class="promo-title">30 Dias de Transformação</p>
+    <p class="promo-text">Você já deu um passo hoje. Que tal um sistema guiado de 30 dias para reconstruir disciplina, mente e fé, um dia de cada vez — do jeito que você já está fazendo aqui?</p>
+    <div class="promo-price"><span class="promo-old">€49,90</span><span class="promo-new">€19,90</span></div>
+    <a class="btn-gold" style="width:100%; max-width:none;" href="https://hubcomercial.github.io/Inspireza-Disciplina-e-f-/" target="_blank" rel="noopener">Conhecer o e-book</a>
+    <button class="promo-dismiss" onclick="closePromo()">Agora não</button>
+  </div>
+</div>
+
+<!-- ============================================================
      PREMIUM
 =============================================================== -->
 <section class="screen" id="screen-premium">
@@ -620,9 +669,11 @@ button{font-family:inherit; cursor:pointer; border:none; background:none; color:
     <div class="perk-row"><span class="perk-check">✓</span> Condição especial de fundador, só para quem entrar agora</div>
     <div class="perk-row"><span class="perk-check">✓</span> Zero spam — só um aviso quando estiver pronto</div>
   </div>
-  <form onsubmit="submitWaitlist(event)">
+  <form id="waitlistForm" onsubmit="submitWaitlist(event)">
+    <input class="email-input" type="text" required placeholder="Seu nome" id="waitlistName">
     <input class="email-input" type="email" required placeholder="seu@email.com" id="waitlistEmail">
-    <button class="btn-gold" type="submit" style="max-width:none;">Confirmar minha vaga</button>
+    <button class="btn-gold" type="submit" id="waitlistSubmitBtn" style="max-width:none;">Confirmar minha vaga</button>
+    <p class="waitlist-error" id="waitlistError" style="display:none;">Não conseguimos enviar agora. Verifique sua conexão e tente novamente.</p>
   </form>
   <div class="footer-nav">
     <button class="link-quiet" onclick="goTo('screen-package')">Voltar para o meu pacote do dia</button>
@@ -690,91 +741,1260 @@ const VIDEOS = [
 ];
 
 /* CONTEÚDO — 12 emoções x 5 variações = 60 combinações, alternadas pela data do sistema */
-const CONTENT = {
-ansiedade:[
- {t:'O chão sob seus pés', x:'A ansiedade grita sobre o futuro, mas o único lugar onde você realmente está é aqui. Seu corpo já sabe respirar sem que você mande — confie nele por um instante.', p:['Sinta os pés no chão por 10 segundos','Nomeie 3 coisas que você vê agora','Solte os ombros e a mandíbula'], v:{ref:'Filipenses 4:6-7', text:'Não andeis ansiosos por coisa alguma; em tudo, apresentai vossas petições a Deus.'}, f:'Você não precisa resolver tudo hoje.', d:'Escreva num papel a única coisa que está sob o seu controle agora.'},
- {t:'Uma onda, não um oceano', x:'A ansiedade vem em ondas: ela sobe, atinge o pico e sempre desce de novo. Você já atravessou cem por cento dos seus dias mais difíceis até hoje.', p:['Conte 5 respirações lentas','Beba um copo de água devagar','Abra uma janela e sinta o ar'], v:{ref:'Salmos 94:19', text:'Nos meus pensamentos ansiosos, teu consolo trouxe alegria à minha alma.'}, f:'Isso também vai passar.', d:'Mande uma mensagem de voz contando como você está, sem editar as palavras.'},
- {t:'Pausa antes da tempestade', x:'Sua mente está tentando te proteger, mesmo que pareça o contrário. Dar um passo atrás não é fraqueza — é a forma mais sábia de recomeçar.', p:['Afaste-se da tela por 5 minutos','Alongue o pescoço lentamente','Escreva o que está te preocupando'], v:{ref:'Mateus 6:34', text:'Não vos preocupeis com o dia de amanhã, pois ele cuidará de si mesmo.'}, f:'Respirar fundo também é produtivo.', d:'Escolha uma preocupação e pergunte: isso está no meu controle agora?'},
- {t:'Corpo âncora', x:'Quando a mente acelera, o corpo pode ser seu porto seguro. Toque em algo próximo, sinta a textura, e deixe isso te trazer de volta para o presente.', p:['Toque em 3 objetos ao redor','Descreva as texturas em voz baixa','Respire fundo antes de continuar'], v:{ref:'Isaías 41:10', text:'Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus.'}, f:'Você está mais seguro do que sua mente diz.', d:'Passe 3 minutos sem celular, só observando o ambiente ao redor.'},
- {t:'Menos previsão, mais presença', x:'Sua mente quer prever tudo para se sentir segura, mas a vida acontece um momento de cada vez. Você só precisa dar conta deste instante aqui.', p:['Foque em uma única tarefa por vez','Solte os punhos e as mãos','Repita em silêncio: estou seguro agora'], v:{ref:'Salmos 23:4', text:'Ainda que eu andasse pelo vale da sombra da morte, não temeria mal algum.'}, f:'Um passo de cada vez já é suficiente.', d:'Liste uma coisa boa que aconteceu nas últimas 24 horas.'}
-],
-medo:[
- {t:'Coragem não é ausência de medo', x:'Ter medo não te torna fraco — te torna humano. A coragem mora exatamente no instante em que você segue em frente mesmo sentindo medo.', p:['Nomeie o medo em voz alta','Pergunte: o que é fato e o que é hipótese?','Dê um passo pequeno, mesmo que trema'], v:{ref:'2 Timóteo 1:7', text:'Deus não nos deu espírito de covardia, mas de poder, amor e domínio próprio.'}, f:'Você pode sentir medo e ainda assim seguir em frente.', d:'Faça hoje uma coisa pequena que o medo tem te impedido de fazer.'},
- {t:'A luz depois do túnel', x:'O medo costuma exagerar o tamanho das coisas. Muitas vezes, a situação que parece impossível na escuridão fica menor assim que a luz chega.', p:['Escreva o pior cenário — e o mais provável','Respire fundo 3 vezes','Fale com alguém de confiança sobre isso'], v:{ref:'Salmos 27:1', text:'O Senhor é a minha luz e a minha salvação; a quem temerei?'}, f:'Você já sobreviveu a tudo que temeu antes.', d:'Escreva uma carta curta para o seu eu de daqui a um ano.'},
- {t:'Pequenos passos vencem grandes medos', x:'Você não precisa vencer o medo de uma vez. Basta dar um passo pequeno hoje, e outro amanhã — é assim que a coragem se constrói.', p:['Escolha o menor passo possível','Dê esse passo nos próximos 10 minutos','Comemore mesmo o progresso pequeno'], v:{ref:'Josué 1:9', text:'Sê forte e corajoso; não temas, nem te espantes, pois o Senhor está contigo.'}, f:'Um passo pequeno também é coragem.', d:'Envie a mensagem, faça a ligação ou marque o horário que você tem adiado.'},
- {t:'O que você teme, geralmente cresce', x:'Evitar o medo costuma fazê-lo crescer no silêncio. Olhar para ele, ainda que com cuidado, é o primeiro passo para ele perder força.', p:['Escreva exatamente o que te assusta','Pergunte: isso já aconteceu antes?','Planeje um pequeno passo de enfrentamento'], v:{ref:'Isaías 41:13', text:'Eu, o Senhor teu Deus, te seguro pela tua mão direita e te digo: não temas.'}, f:'Olhar de frente é o começo da liberdade.', d:'Converse com alguém sobre um medo que você nunca disse em voz alta.'},
- {t:'Confiança se constrói agindo', x:'A confiança não vem antes da ação — ela nasce depois dela. Cada pequena atitude que você toma apesar do medo constrói a próxima.', p:['Relembre uma vez que você venceu o medo','Escolha uma ação de hoje, por menor que seja','Aja antes que a mente reconsidere'], v:{ref:'Filipenses 4:13', text:'Tudo posso naquele que me fortalece.'}, f:'Você é mais capaz do que o medo te faz acreditar.', d:'Faça algo hoje que você vinha adiando por medo do resultado.'}
-],
-tristeza:[
- {t:'Sentir também é curar', x:'Você não precisa estar bem o tempo todo. A tristeza, quando sentida com cuidado, é parte do caminho de volta para si mesmo — não um obstáculo a ele.', p:['Permita-se chorar, se precisar','Escreva o que está doendo','Seja gentil consigo mesmo hoje'], v:{ref:'Salmos 34:18', text:'Perto está o Senhor dos que têm o coração quebrantado.'}, f:'Está tudo bem não estar bem hoje.', d:'Faça algo pequeno e gentil só para você, sem culpa.'},
- {t:'A tristeza também passa', x:'Assim como o dia mais chuvoso ainda termina, a tristeza também tem seu tempo de passar. Você não vai se sentir assim para sempre, mesmo que pareça agora.', p:['Envolva-se em algo aconchegante','Ouça uma música que acalma','Beba algo quente devagar'], v:{ref:'Salmos 30:5', text:'O choro pode durar uma noite, mas a alegria vem pela manhã.'}, f:'Depois da chuva, sempre vem uma pausa de sol.', d:'Anote 3 coisas simples que ainda te trazem algum conforto.'},
- {t:'Espaço para sentir', x:'Você não precisa esconder a tristeza para parecer forte. Dar espaço para ela existir, sem se apressar em superá-la, também é uma forma de força.', p:['Reserve 10 minutos só para sentir, sem distrações','Escreva sem filtro o que vier','Depois, faça algo que te acalme'], v:{ref:'Eclesiastes 3:4', text:'Há tempo de chorar e tempo de rir; tempo de prantear e tempo de dançar.'}, f:'Sentir tudo isso também faz parte de estar vivo.', d:'Ligue para alguém que sempre te faz sentir mais leve.'},
- {t:'Pequenas âncoras de conforto', x:'Nos dias tristes, os pequenos rituais importam mais do que parecem. Um banho quente, uma luz mais suave, um travesseiro macio — cuide dos detalhes.', p:['Escolha um pequeno ritual de conforto','Diminua as luzes ao seu redor','Respire fundo antes de dormir'], v:{ref:'Mateus 5:4', text:'Bem-aventurados os que choram, porque eles serão consolados.'}, f:'Você merece cuidado, especialmente hoje.', d:'Prepare algo quentinho para comer ou beber com calma.'},
- {t:'Você não está sozinho nisso', x:'Muita gente já sentiu exatamente o que você sente agora — e atravessou. A tristeza dói, mas ela não te define, e ela não fica para sempre.', p:['Lembre de uma vez que você superou algo parecido','Fale com alguém sobre como está se sentindo','Vá devagar com você mesmo hoje'], v:{ref:'Salmos 147:3', text:'Ele sara os quebrantados de coração e lhes ata as feridas.'}, f:'Isso dói agora, mas não vai doer para sempre.', d:'Escreva uma mensagem de carinho para você mesmo, como se fosse para um amigo.'}
-],
-solidao:[
- {t:'Sozinho não é o mesmo que abandonado', x:'A solidão engana e faz parecer que ninguém se importa. Mas existe gente que se importa com você — às vezes só precisa de um pequeno passo para reconectar.', p:['Mande uma mensagem para alguém que você sente falta','Diga como está se sentindo, sem se esconder','Aceite companhia, mesmo que pequena'], v:{ref:'Deuteronômio 31:6', text:'Não te deixarei, nem te desampararei.'}, f:'Você importa, mesmo quando não parece.', d:'Ligue para alguém só para dizer "estava pensando em você".'},
- {t:'A companhia que você já tem', x:'Antes de qualquer outra pessoa, você tem a si mesmo. Aprender a estar em boa companhia consigo é o primeiro passo para atrair conexões verdadeiras.', p:['Escreva 3 qualidades que você tem','Faça algo de que você gosta, sozinho e com prazer','Trate-se como trataria um bom amigo'], v:{ref:'Salmos 68:6', text:'Deus faz que o solitário viva em família.'}, f:'Sua própria companhia também é valiosa.', d:'Convide alguém para um café ou uma ligação nesta semana.'},
- {t:'Pontes, não muros', x:'É comum se afastar quando a solidão aperta, mesmo sendo o contrário do que precisamos. Um pequeno gesto de aproximação pode abrir mais portas do que imaginamos.', p:['Reative uma conversa que ficou parada','Participe de algo em grupo, mesmo online','Seja o primeiro a puxar assunto hoje'], v:{ref:'Eclesiastes 4:9-10', text:'Melhor é serem dois do que um, pois têm melhor paga do seu trabalho.'}, f:'Uma mensagem pode ser o início de uma ponte.', d:'Comente ou responda a alguém que você tem evitado falar.'},
- {t:'Presença não precisa ser perfeita', x:'Você não precisa ter as palavras certas para se aproximar de alguém. Às vezes, um simples "estou aqui" já é o suficiente para começar a romper a solidão.', p:['Escreva uma mensagem simples para alguém','Não espere a resposta perfeita para enviar','Esteja aberto a receber companhia'], v:{ref:'Provérbios 18:24', text:'Há amigo mais chegado do que um irmão.'}, f:'Você não precisa atravessar isso sozinho.', d:'Passe 20 minutos em um lugar com outras pessoas por perto, mesmo em silêncio.'},
- {t:'Reconectar é um músculo', x:'Assim como qualquer músculo, a conexão fica mais fácil com prática. Cada pequeno contato que você faz hoje torna o próximo um pouco menos difícil.', p:['Escolha uma pessoa para se reaproximar','Marque algo simples, tipo um café ou chamada','Vá com calma, sem pressão'], v:{ref:'Gênesis 2:18', text:'Não é bom que o homem esteja só.'}, f:'Cada pequeno contato conta mais do que parece.', d:'Envie um "oi, como você está?" para alguém que você não fala há um tempo.'}
-],
-cansaco:[
- {t:'Descansar não é desistir', x:'Sua mente também se cansa, mesmo sem esforço físico visível. Parar um pouco não é fraqueza — é o que permite que você continue com mais leveza depois.', p:['Feche os olhos por 2 minutos, sem telas','Diga não a algo que pode esperar','Durma um pouco mais cedo hoje'], v:{ref:'Mateus 11:28', text:'Vinde a mim todos os que estais cansados e sobrecarregados, e eu vos aliviarei.'}, f:'Descansar também é produtivo.', d:'Cancele ou adie um compromisso que não é essencial hoje.'},
- {t:'A mente também precisa de pausa', x:'Cansaço mental não se resolve só com sono — precisa de silêncio, de menos estímulo, de espaço vazio. Dê a si mesmo esse espaço, mesmo que por poucos minutos.', p:['Fique 5 minutos sem nenhuma tela','Respire olhando para algo distante','Evite tomar grandes decisões hoje'], v:{ref:'Êxodo 33:14', text:'Minha presença irá contigo, e eu te darei descanso.'}, f:'Silêncio também é um tipo de cuidado.', d:'Desligue as notificações do celular por 1 hora hoje.'},
- {t:'Sinais que pedem atenção', x:'O cansaço mental costuma sussurrar antes de gritar: irritação, esquecimento, falta de foco. Ouvir esses sinais cedo evita que eles se tornem algo maior.', p:['Note em que momento do dia você se sente mais cansado','Reduza uma tarefa da sua lista hoje','Beba água e coma algo nutritivo'], v:{ref:'Salmos 62:1', text:'Somente em Deus repousa a minha alma; dele vem a minha salvação.'}, f:'Seu corpo está pedindo, é só ouvir.', d:'Escreva 3 coisas que estão pesando na sua mente agora, para tirá-las de dentro.'},
- {t:'Menos é mais, hoje', x:'Você não precisa dar conta de tudo hoje. Fazer menos, com mais presença, costuma valer mais do que fazer tudo pela metade e exausto.', p:['Escolha só 1 prioridade para hoje','Elimine 2 tarefas que podem esperar','Descanse sem culpa depois'], v:{ref:'Salmos 23:2-3', text:'Deitar-me faz em verdes pastos; guia-me mansamente e refrigera a minha alma.'}, f:'Fazer menos hoje também é avançar.', d:'Diga não a um pedido que vai te sobrecarregar essa semana.'},
- {t:'Recarregar antes de continuar', x:'Assim como um celular sem bateria não funciona bem, sua mente também precisa recarregar para continuar dando conta do que vier. Cuide dessa recarga hoje.', p:['Durma ou descanse 20 minutos, se possível','Saia um pouco do ambiente atual','Evite excesso de estímulo à noite'], v:{ref:'Marcos 6:31', text:'Vinde vós à parte, para um lugar deserto, e repousai um pouco.'}, f:'Você também precisa ser cuidado.', d:'Reserve 15 minutos hoje só para não fazer nada.'}
-],
-desanimo:[
- {t:'A chama ainda existe', x:'O desânimo faz parecer que tudo perdeu o sentido, mas a chama que te trouxe até aqui não se apagou — só está mais baixa, esperando ser cuidada de novo.', p:['Relembre algo que já te empolgou antes','Faça uma tarefa bem pequena, só para movimentar','Evite se cobrar por sentir isso'], v:{ref:'Gálatas 6:9', text:'Não nos cansemos de fazer o bem, pois no tempo próprio colheremos.'}, f:'A chama ainda está aí, mesmo baixa.', d:'Escolha uma micro-tarefa de 5 minutos e conclua ela hoje.'},
- {t:'Nem todo dia precisa brilhar', x:'Alguns dias são só de sobreviver, e está tudo bem. Você não precisa estar motivado o tempo todo para seguir em frente — só precisa dar o próximo passo possível.', p:['Aceite que hoje é um dia mais devagar','Faça o mínimo com gentileza consigo mesmo','Não compare seu hoje com seus melhores dias'], v:{ref:'Isaías 40:29', text:'Ele dá força ao cansado e multiplica as forças ao que não tem nenhum vigor.'}, f:'Hoje só precisa ser hoje.', d:'Escreva uma coisa que você já superou e que parecia impossível.'},
- {t:'Pequenas vitórias contam', x:'O desânimo costuma esconder os pequenos progressos. Reconhecer pequenas vitórias, mesmo as óbvias, ajuda a mente a lembrar que o esforço ainda vale a pena.', p:['Liste 3 coisas que você já conseguiu essa semana','Comemore uma delas, mesmo pequena','Escolha uma próxima meta bem pequena'], v:{ref:'Zacarias 4:10', text:'Quem despreza o dia dos pequenos começos?'}, f:'Pequenos passos ainda são passos.', d:'Comemore hoje algo que você fez, por menor que pareça.'},
- {t:'Motivação vem depois da ação', x:'Esperar se sentir motivado para agir costuma ser ao contrário do que funciona. Muitas vezes, é começando — mesmo sem vontade — que a motivação aparece.', p:['Escolha a menor ação possível para começar','Comece antes de "sentir vontade"','Observe como se sente depois de agir'], v:{ref:'Provérbios 3:5-6', text:'Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento.'}, f:'Comece pequeno, o resto se ajeita andando.', d:'Faça os primeiros 5 minutos de algo que você tem adiado.'},
- {t:'Voltar a acreditar aos poucos', x:'Não é preciso recuperar toda a esperança de uma vez. Um pequeno lampejo de acreditar já é o suficiente para dar o próximo passo hoje.', p:['Pense em algo que já deu certo antes','Permita-se acreditar só um pouquinho hoje','Dê um passo, mesmo pequeno, na direção certa'], v:{ref:'Jeremias 29:11', text:'Porque eu bem sei os pensamentos que penso a vosso respeito, pensamentos de paz.'}, f:'Um pouco de esperança já é suficiente para hoje.', d:'Escreva algo que você quer voltar a acreditar sobre si mesmo.'}
-],
-motivacao:[
- {t:'Comece pequeno demais para falhar', x:'Quando a motivação some, o segredo é diminuir a meta até ela ficar tão pequena que seja impossível não fazer. Depois, o impulso costuma vir sozinho.', p:['Escolha uma tarefa e reduza-a pela metade','Comprometa-se só com os primeiros 2 minutos','Continue apenas se quiser — sem obrigação'], v:{ref:'Colossenses 3:23', text:'Tudo o que fizerdes, fazei-o de todo o coração.'}, f:'Você não precisa de motivação para começar, só de um primeiro passo.', d:'Faça os primeiros 2 minutos de algo que você vem adiando.'},
- {t:'Ambiente muda tudo', x:'Muitas vezes a falta de vontade não é sobre você, é sobre o ambiente ao redor. Um pequeno ajuste no espaço pode facilitar o que parecia impossível.', p:['Organize o espaço onde você vai agir','Retire uma distração por perto','Deixe pronto o que facilita o início'], v:{ref:'Eclesiastes 9:10', text:'Tudo quanto te vier à mão para fazer, faze-o conforme as tuas forças.'}, f:'Facilite o começo, o resto flui.', d:'Prepare o ambiente hoje à noite para a tarefa de amanhã.'},
- {t:'Lembre do seu porquê', x:'A motivação costuma sumir quando perdemos de vista o motivo por trás da tarefa. Reconectar com o "porquê" ajuda a mente a encontrar energia de novo.', p:['Escreva por que essa tarefa importa para você','Visualize como vai se sentir ao terminar','Comece pela parte mais fácil'], v:{ref:'Filipenses 3:14', text:'Prossigo para o alvo, pelo prêmio da soberana vocação de Deus.'}, f:'Lembre por que você começou.', d:'Escreva seu principal objetivo do mês em um lugar visível.'},
- {t:'Progresso imperfeito ainda é progresso', x:'Esperar o momento perfeito ou a energia ideal costuma travar mais do que ajudar. Fazer algo imperfeito hoje vale mais do que esperar por um dia perfeito que não vem.', p:['Aceite fazer algo de forma imperfeita','Escolha "feito" em vez de "perfeito" por hoje','Siga em frente sem revisar demais'], v:{ref:'Filipenses 1:6', text:'Aquele que começou boa obra em vós a aperfeiçoará.'}, f:'Feito é melhor do que perfeito.', d:'Termine uma tarefa hoje sem revisar mais de uma vez.'},
- {t:'Energia se constrói agindo', x:'Muita gente espera ter energia para depois agir, mas geralmente é o contrário: a ação é que gera a energia. Um pequeno movimento já pode mudar seu estado.', p:['Levante e se movimente por 2 minutos','Beba um copo de água','Volte à tarefa com um pequeno passo'], v:{ref:'Isaías 40:31', text:'Os que esperam no Senhor renovarão as forças; subirão com asas como águias.'}, f:'Mover o corpo pode mover a mente.', d:'Faça 2 minutos de movimento antes de voltar à sua tarefa.'}
-],
-raiva:[
- {t:'A raiva também tem uma mensagem', x:'Por trás da raiva quase sempre existe uma necessidade não atendida ou um limite que foi ultrapassado. Ouvir essa mensagem, sem agir no calor do momento, é o primeiro passo.', p:['Respire fundo antes de reagir','Pergunte: o que essa raiva está tentando me dizer?','Espere um pouco antes de responder'], v:{ref:'Efésios 4:26', text:'Irai-vos, e não pequeis; não se ponha o sol sobre a vossa ira.'}, f:'Sua raiva tem uma mensagem — ouça antes de agir.', d:'Escreva o que te deixou com raiva sem se censurar, depois releia com calma.'},
- {t:'Espaço entre o estímulo e a resposta', x:'Entre o que acontece e sua reação existe um pequeno espaço — é nele que mora sua liberdade de escolher como agir, em vez de apenas reagir.', p:['Conte até 10 antes de responder','Saia do ambiente por alguns minutos, se possível','Escolha a resposta, não a reação automática'], v:{ref:'Tiago 1:19-20', text:'Seja todo homem pronto para ouvir, tardio para falar, tardio para se irar.'}, f:'Você pode escolher sua resposta.', d:'Da próxima vez que sentir raiva, conte até 10 antes de agir.'},
- {t:'Liberar sem machucar', x:'A raiva represada machuca por dentro, mas liberá-la sobre os outros machuca por fora. Existem formas de soltar essa energia sem ferir ninguém, nem a você mesmo.', p:['Escreva tudo o que sente, sem filtro, num papel','Faça um exercício físico rápido para soltar a tensão','Depois, decida com calma o que fazer'], v:{ref:'Provérbios 15:1', text:'A resposta branda desvia o furor, mas a palavra dura suscita a ira.'}, f:'Você pode soltar a raiva sem se machucar.', d:'Faça 20 polichinelos ou uma caminhada rápida para descarregar a tensão.'},
- {t:'Limites, não explosões', x:'Muitas vezes a raiva aparece quando um limite não foi colocado a tempo. Aprender a dizer não, com firmeza e calma, evita que a raiva precise gritar por você.', p:['Identifique o limite que foi ultrapassado','Escreva como você poderia comunicar isso com calma','Pratique dizer não da próxima vez'], v:{ref:'Mateus 5:37', text:'Seja, pois, o vosso falar: sim, sim; não, não.'}, f:'Um limite claro previne uma explosão.', d:'Diga não a algo hoje, com firmeza e sem se justificar demais.'},
- {t:'Depois da tempestade', x:'A raiva, como qualquer tempestade, também passa. O que fica depois é a forma como você lidou com ela — e isso você ainda pode escolher agora.', p:['Respire fundo e solte os ombros','Pergunte: o que eu preciso agora?','Cuide de si antes de resolver o resto'], v:{ref:'Salmos 37:8', text:'Descansa no Senhor e espera nele; não te indignes.'}, f:'Depois da tempestade, o cuidado ainda é possível.', d:'Faça as pazes com alguém, mesmo que só dentro de você.'}
-],
-estresse:[
- {t:'Seu corpo também está no jogo', x:'O estresse não vive só na mente — ele mora no corpo, nos ombros tensos, na mandíbula travada. Cuidar do corpo é também cuidar da mente.', p:['Solte os ombros e a mandíbula agora','Alongue o pescoço devagar','Respire fundo 3 vezes'], v:{ref:'1 Pedro 5:7', text:'Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.'}, f:'Seu corpo está pedindo uma pausa.', d:'Faça uma pausa de 5 minutos sem nenhuma tarefa no meio do seu dia.'},
- {t:'Nem tudo precisa ser agora', x:'O estresse costuma fazer tudo parecer urgente ao mesmo tempo. Mas quase nada precisa ser resolvido neste exato minuto — dê um passo de cada vez.', p:['Liste tudo o que está pesando','Marque só 1 coisa como prioridade real','Deixe o resto para depois, sem culpa'], v:{ref:'Mateus 6:34', text:'Basta a cada dia o seu mal.'}, f:'Você não precisa resolver tudo agora.', d:'Escolha 1 tarefa e adie o resto para amanhã sem culpa.'},
- {t:'Sobrecarga tem limite', x:'Seu corpo e sua mente têm um limite de carga, mesmo que você tente ignorar. Reconhecer isso cedo evita que o estresse vire algo mais difícil de lidar.', p:['Observe os sinais físicos de estresse','Reduza uma responsabilidade hoje','Peça ajuda em algo, se possível'], v:{ref:'Êxodo 18:18', text:'Certamente desfalecerás, assim tu, como este povo contigo; porque este negócio te é mui pesado.'}, f:'Pedir ajuda também é força.', d:'Peça ajuda em uma tarefa que está pesando demais essa semana.'},
- {t:'Micro-pausas, grande diferença', x:'Você não precisa de um dia inteiro de folga para aliviar o estresse. Pequenas pausas, feitas com frequência, já fazem diferença real no seu dia.', p:['Faça uma pausa de 2 minutos a cada hora','Olhe para longe da tela por 20 segundos','Beba água com calma'], v:{ref:'Salmos 46:10', text:'Aquietai-vos, e sabei que eu sou Deus.'}, f:'Pequenas pausas também curam.', d:'Programe 3 pausas de 2 minutos ao longo do seu dia hoje.'},
- {t:'Organizar para respirar', x:'Parte do estresse vem da sensação de caos. Organizar mesmo que uma pequena parte do seu dia ou espaço pode devolver uma sensação real de controle.', p:['Organize uma pequena área ao seu redor','Escreva uma lista simples do que precisa ser feito','Risque uma coisa da lista hoje'], v:{ref:'1 Coríntios 14:33', text:'Deus não é Deus de confusão, senão de paz.'}, f:'Organizar um pouco já traz mais calma.', d:'Organize por 10 minutos um espaço pequeno que está te incomodando.'}
-],
-inseguranca:[
- {t:'Você não precisa se comparar', x:'Comparar seu começo com o meio da jornada de outra pessoa nunca é justo com você. Seu caminho tem seu próprio ritmo, e ele também é válido.', p:['Identifique com quem você tem se comparado','Lembre de uma conquista sua recente','Desative por hoje o que alimenta a comparação'], v:{ref:'Gálatas 6:4', text:'Prove cada um a sua própria obra, e terá glória só em si mesmo.'}, f:'Seu caminho não precisa parecer com o de ninguém.', d:'Fique 1 dia sem comparar seu progresso com o de outras pessoas.'},
- {t:'Sua voz interna pode mudar', x:'A forma como você fala consigo mesmo molda o que você acredita ser capaz. Trocar a autocrítica por gentileza muda, aos poucos, sua relação com você mesmo.', p:['Note quando a autocrítica aparecer','Troque a frase dura por uma mais gentil','Fale consigo como falaria com alguém que ama'], v:{ref:'Salmos 139:14', text:'Te louvarei, porque de um modo terrível e maravilhoso fui formado.'}, f:'Fale consigo com a mesma gentileza que oferece aos outros.', d:'Escreva 3 qualidades suas que você raramente reconhece.'},
- {t:'Imperfeito e ainda assim valioso', x:'Você não precisa ser perfeito para merecer respeito, amor ou reconhecimento. Seu valor não depende de acertar tudo — ele já existe, mesmo em meio às falhas.', p:['Lembre que erros fazem parte de crescer','Perdoe uma falha recente sua','Reconheça um esforço, mesmo sem resultado perfeito'], v:{ref:'Romanos 8:1', text:'Nenhuma condenação há para os que estão em Cristo Jesus.'}, f:'Você não precisa ser perfeito para ser valioso.', d:'Perdoe-se hoje por algo que você vem se cobrando demais.'},
- {t:'Confiança se treina', x:'A confiança não é um traço fixo — ela cresce com pequenas provas que você dá a si mesmo. Cada pequena ação vencida constrói um pouco mais dela.', p:['Lembre de uma vez que você se superou','Escolha um pequeno desafio para hoje','Reconheça o esforço, não só o resultado'], v:{ref:'2 Coríntios 3:5', text:'A nossa suficiência vem de Deus.'}, f:'A confiança se constrói passo a passo.', d:'Faça algo pequeno hoje que exige um pouco de coragem.'},
- {t:'Você é mais do que essa dúvida', x:'A insegurança faz parecer que uma única dúvida define tudo o que você é. Mas você é muito mais amplo do que qualquer pensamento passageiro sobre si mesmo.', p:['Escreva a dúvida que está te incomodando','Escreva 3 fatos que contradizem essa dúvida','Releia isso sempre que precisar'], v:{ref:'Efésios 2:10', text:'Somos feitura sua, criados em Cristo Jesus para boas obras.'}, f:'Você é maior do que essa dúvida específica.', d:'Escreva uma carta de encorajamento para você mesmo, como se fosse de um amigo.'}
-],
-esperanca:[
- {t:'A esperança já está em movimento', x:'Só o fato de você estar aqui, buscando cuidado, já é um sinal de esperança agindo. Ela não precisa ser grande para ser real — só precisa existir.', p:['Note o que te trouxe até aqui hoje','Escreva uma coisa que você espera para essa semana','Dê um passo pequeno na direção dela'], v:{ref:'Romanos 15:13', text:'O Deus de esperança vos encha de todo o gozo e paz em crença.'}, f:'Você já está em movimento, mesmo devagar.', d:'Escreva 3 coisas que você está esperando com carinho para o futuro.'},
- {t:'Sementes que ainda não brotaram', x:'Nem toda semente brota no mesmo dia em que é plantada. Alguns dos seus esforços ainda estão em silêncio, crescendo por baixo, esperando a hora certa.', p:['Lembre de um esforço recente seu','Confie no tempo que ele ainda precisa','Continue regando, mesmo sem ver o fruto ainda'], v:{ref:'Gálatas 6:9', text:'Não nos cansemos de fazer o bem, pois no tempo próprio colheremos.'}, f:'Nem tudo que você planta brota no mesmo dia.', d:'Continue hoje algo que você já começou, mesmo sem ver resultado ainda.'},
- {t:'Um futuro possível', x:'Por mais difícil que o presente pareça, ele não é a única versão possível do futuro. Pequenas escolhas de hoje já começam a moldar um caminho diferente.', p:['Visualize como você quer se sentir em 1 ano','Escolha 1 pequena ação alinhada a esse futuro','Comemore o simples fato de sonhar de novo'], v:{ref:'Jeremias 29:11', text:'Porque eu bem sei os pensamentos que penso a vosso respeito, pensamentos de paz.'}, f:'O futuro ainda está sendo escrito.', d:'Escreva como você gostaria que fosse o seu próximo ano.'},
- {t:'Esperança não é ingenuidade', x:'Ter esperança não significa ignorar as dificuldades reais. É reconhecer o difícil e, ainda assim, escolher acreditar que algo melhor também é possível.', p:['Reconheça o que está difícil, sem minimizar','Escreva o que ainda te faz acreditar','Segure os dois ao mesmo tempo, com gentileza'], v:{ref:'Hebreus 11:1', text:'Ora, a fé é o firme fundamento das coisas que se esperam.'}, f:'Você pode reconhecer o difícil e ainda ter esperança.', d:'Compartilhe com alguém algo que ainda te dá esperança.'},
- {t:'Continue plantando', x:'Cada pequeno esforço que você faz hoje é uma semente para o amanhã, mesmo que o fruto ainda não seja visível. Continue plantando, com paciência.', p:['Escolha uma ação pequena e consistente para hoje','Faça-a com atenção, sem pressa','Confie no processo, mesmo sem ver o resultado'], v:{ref:'Salmos 126:5', text:'Os que semeiam em lágrimas, com alegria ceifarão.'}, f:'Continue plantando — a colheita tem seu tempo.', d:'Faça hoje uma pequena ação que constrói o futuro que você quer.'}
-],
-gratidao:[
- {t:'O pequeno também é grande', x:'A gratidão não precisa de grandes motivos para existir. Um café quente, um raio de sol, uma mensagem gentil — os pequenos detalhes também merecem ser celebrados.', p:['Note 3 pequenas coisas boas de hoje','Agradeça em voz alta por uma delas','Guarde esse momento na memória'], v:{ref:'1 Tessalonicenses 5:18', text:'Em tudo dai graças, porque esta é a vontade de Deus.'}, f:'O pequeno também merece ser celebrado.', d:'Agradeça a alguém por algo específico que ela fez por você.'},
- {t:'Gratidão muda o foco', x:'A mente tende a notar mais o que falta do que o que já existe. Praticar gratidão treina o foco a enxergar também o que já está bem.', p:['Escreva 3 coisas boas do seu dia','Releia essa lista antes de dormir','Repita esse hábito amanhã'], v:{ref:'Salmos 100:4', text:'Entrai pelas suas portas com ação de graças, e em seus átrios com louvor.'}, f:'O que você agradece, cresce.', d:'Mantenha por 7 dias uma lista diária de 3 gratidões.'},
- {t:'Gratidão em meio à dificuldade', x:'Mesmo em dias difíceis, é possível encontrar pequenos motivos de gratidão. Isso não apaga a dificuldade, mas equilibra o peso dela com um pouco de leveza.', p:['Encontre 1 motivo de gratidão mesmo num dia difícil','Anote-o sem minimizar o resto que dói','Volte a ele quando precisar de leveza'], v:{ref:'Filipenses 4:11-12', text:'Aprendi a contentar-me, seja qual for o estado em que me encontre.'}, f:'Mesmo nos dias difíceis, existe algo para agradecer.', d:'Encontre 1 coisa boa mesmo dentro de um dia difícil.'},
- {t:'Gratidão pelas pessoas', x:'Entre tudo o que a vida oferece, as pessoas costumam ser o que mais merece gratidão. Reconhecer isso, e dizer isso a elas, fortalece os laços que você tem.', p:['Pense em alguém importante para você','Escreva por que você é grato a essa pessoa','Diga isso a ela, de algum jeito, hoje'], v:{ref:'Filipenses 1:3', text:'Dou graças ao meu Deus todas as vezes que me lembro de vós.'}, f:'As pessoas ao seu redor merecem sua gratidão.', d:'Envie uma mensagem de gratidão para alguém especial hoje.'},
- {t:'Gratidão pelo que você já superou', x:'Olhar para trás e reconhecer o quanto você já superou é também um ato de gratidão. Você chegou até aqui carregando mais força do que imagina.', p:['Lembre de um desafio que você já superou','Agradeça a si mesmo por isso','Carregue essa força para o desafio de hoje'], v:{ref:'Salmos 103:2', text:'Bendize, ó minha alma, ao Senhor, e não te esqueças de nenhum de seus benefícios.'}, f:'Você já superou mais do que imagina.', d:'Escreva uma carta de agradecimento para o seu eu do passado.'}
-]
+const MESSAGES = {
+
+ ansiedade: [
+  {
+   t: "O chão sob seus pés",
+   x: "A ansiedade grita sobre o futuro, mas o único lugar onde você realmente está é aqui. Seu corpo já sabe respirar sem que você mande — confie nele por um instante."
+  },
+  {
+   t: "Uma onda, não um oceano",
+   x: "A ansiedade vem em ondas: ela sobe, atinge o pico e sempre desce de novo. Você já atravessou cem por cento dos seus dias mais difíceis até hoje."
+  },
+  {
+   t: "Pausa antes da tempestade",
+   x: "Sua mente está tentando te proteger, mesmo que pareça o contrário. Dar um passo atrás não é fraqueza — é a forma mais sábia de recomeçar."
+  },
+  {
+   t: "Corpo âncora",
+   x: "Quando a mente acelera, o corpo pode ser seu porto seguro. Toque em algo próximo, sinta a textura, e deixe isso te trazer de volta para o presente."
+  },
+  {
+   t: "Menos previsão, mais presença",
+   x: "Sua mente quer prever tudo para se sentir segura, mas a vida acontece um momento de cada vez. Você só precisa dar conta deste instante aqui."
+  },
+  {
+   t: "Você não precisa controlar tudo",
+   x: "A ansiedade tenta te convencer de que, se você controlar cada detalhe, vai ficar tudo bem. Mas descansar um pouco desse controle também é uma forma de cuidado."
+  },
+  {
+   t: "O presente é o único lugar seguro",
+   x: "Sua mente viaja para o futuro em busca de perigos, mas o presente é o único lugar onde você pode realmente agir. Volte para aqui, um detalhe de cada vez."
+  },
+  {
+   t: "Respire antes de decidir",
+   x: "Decisões tomadas em pânico raramente são as melhores. Dar um passo atrás para respirar antes de agir já é, por si só, um ato de cuidado com você mesmo."
+  }
+ ],
+ medo: [
+  {
+   t: "Coragem não é ausência de medo",
+   x: "Ter medo não te torna fraco — te torna humano. A coragem mora exatamente no instante em que você segue em frente mesmo sentindo medo."
+  },
+  {
+   t: "A luz depois do túnel",
+   x: "O medo costuma exagerar o tamanho das coisas. Muitas vezes, a situação que parece impossível na escuridão fica menor assim que a luz chega."
+  },
+  {
+   t: "Pequenos passos vencem grandes medos",
+   x: "Você não precisa vencer o medo de uma vez. Basta dar um passo pequeno hoje, e outro amanhã — é assim que a coragem se constrói."
+  },
+  {
+   t: "O que você teme, geralmente cresce",
+   x: "Evitar o medo costuma fazê-lo crescer no silêncio. Olhar para ele, ainda que com cuidado, é o primeiro passo para ele perder força."
+  },
+  {
+   t: "Confiança se constrói agindo",
+   x: "A confiança não vem antes da ação — ela nasce depois dela. Cada pequena atitude que você toma apesar do medo constrói a próxima."
+  },
+  {
+   t: "O primeiro passo é o mais difícil",
+   x: "Depois do primeiro passo dado com medo, os próximos costumam ficar um pouco mais leves. Você não precisa se sentir corajoso para agir com coragem."
+  },
+  {
+   t: "Medo não é sinal de perigo real",
+   x: "Nem tudo que o medo aponta é, de fato, perigoso. Muitas vezes ele reage a lembranças antigas, não à situação de agora."
+  },
+  {
+   t: "Você já venceu medos antes",
+   x: "Existe uma lista invisível de medos que você já superou ao longo da vida. Esse mesmo você, que já venceu antes, também pode enfrentar o de agora."
+  }
+ ],
+ tristeza: [
+  {
+   t: "Sentir também é curar",
+   x: "Você não precisa estar bem o tempo todo. A tristeza, quando sentida com cuidado, é parte do caminho de volta para si mesmo — não um obstáculo a ele."
+  },
+  {
+   t: "A tristeza também passa",
+   x: "Assim como o dia mais chuvoso ainda termina, a tristeza também tem seu tempo de passar. Você não vai se sentir assim para sempre, mesmo que pareça agora."
+  },
+  {
+   t: "Espaço para sentir",
+   x: "Você não precisa esconder a tristeza para parecer forte. Dar espaço para ela existir, sem se apressar em superá-la, também é uma forma de força."
+  },
+  {
+   t: "Pequenas âncoras de conforto",
+   x: "Nos dias tristes, os pequenos rituais importam mais do que parecem. Um banho quente, uma luz mais suave, um travesseiro macio — cuide dos detalhes."
+  },
+  {
+   t: "Você não está sozinho nisso",
+   x: "Muita gente já sentiu exatamente o que você sente agora — e atravessou. A tristeza dói, mas ela não te define, e ela não fica para sempre."
+  },
+  {
+   t: "Chorar também é comunicar",
+   x: "As lágrimas dizem o que as palavras às vezes não conseguem. Permitir que elas apareçam também é uma forma de se expressar e se cuidar."
+  },
+  {
+   t: "Tristeza não é fraqueza",
+   x: "Sentir tristeza profundamente é sinal de que você se importa, de que algo teve valor para você. Isso não é fraqueza, é sensibilidade."
+  },
+  {
+   t: "Um dia de cada vez",
+   x: "Você não precisa se sentir melhor amanhã cedo. Basta atravessar hoje, com o cuidado possível, e deixar que o tempo faça a parte dele."
+  }
+ ],
+ solidao: [
+  {
+   t: "Sozinho não é o mesmo que abandonado",
+   x: "A solidão engana e faz parecer que ninguém se importa. Mas existe gente que se importa com você — às vezes só precisa de um pequeno passo para reconectar."
+  },
+  {
+   t: "A companhia que você já tem",
+   x: "Antes de qualquer outra pessoa, você tem a si mesmo. Aprender a estar em boa companhia consigo é o primeiro passo para atrair conexões verdadeiras."
+  },
+  {
+   t: "Pontes, não muros",
+   x: "É comum se afastar quando a solidão aperta, mesmo sendo o contrário do que precisamos. Um pequeno gesto de aproximação pode abrir mais portas do que imaginamos."
+  },
+  {
+   t: "Presença não precisa ser perfeita",
+   x: "Você não precisa ter as palavras certas para se aproximar de alguém. Às vezes, um simples \"estou aqui\" já é o suficiente para começar a romper a solidão."
+  },
+  {
+   t: "Reconectar é um músculo",
+   x: "Assim como qualquer músculo, a conexão fica mais fácil com prática. Cada pequeno contato que você faz hoje torna o próximo um pouco menos difícil."
+  },
+  {
+   t: "Buscar ajuda também é coragem",
+   x: "Pedir companhia não é sinal de fraqueza. É reconhecer, com honestidade, que ninguém precisa atravessar tudo sozinho."
+  },
+  {
+   t: "Conexões começam pequenas",
+   x: "Nenhuma amizade nasce grande. Todas começam com um pequeno gesto, uma mensagem simples, um convite despretensioso."
+  },
+  {
+   t: "Sua presença importa",
+   x: "Mesmo quando parece que ninguém notaria sua ausência, sua presença muda o ambiente à sua volta mais do que você imagina."
+  }
+ ],
+ cansaco: [
+  {
+   t: "Descansar não é desistir",
+   x: "Sua mente também se cansa, mesmo sem esforço físico visível. Parar um pouco não é fraqueza — é o que permite que você continue com mais leveza depois."
+  },
+  {
+   t: "A mente também precisa de pausa",
+   x: "Cansaço mental não se resolve só com sono — precisa de silêncio, de menos estímulo, de espaço vazio. Dê a si mesmo esse espaço, mesmo que por poucos minutos."
+  },
+  {
+   t: "Sinais que pedem atenção",
+   x: "O cansaço mental costuma sussurrar antes de gritar: irritação, esquecimento, falta de foco. Ouvir esses sinais cedo evita que eles se tornem algo maior."
+  },
+  {
+   t: "Menos é mais, hoje",
+   x: "Você não precisa dar conta de tudo hoje. Fazer menos, com mais presença, costuma valer mais do que fazer tudo pela metade e exausto."
+  },
+  {
+   t: "Recarregar antes de continuar",
+   x: "Assim como um celular sem bateria não funciona bem, sua mente também precisa recarregar para continuar dando conta do que vier. Cuide dessa recarga hoje."
+  },
+  {
+   t: "Descanso não precisa ser longo",
+   x: "Cinco minutos de descanso de verdade, sem culpa e sem distração, já fazem diferença. Você não precisa de um dia inteiro livre para recarregar um pouco."
+  },
+  {
+   t: "Cansaço também é informação",
+   x: "Seu cansaço está te dizendo algo sobre o ritmo que você tem levado. Ouvir esse sinal agora evita um esgotamento maior depois."
+  },
+  {
+   t: "Permissão para desacelerar",
+   x: "Você não precisa de motivo especial para desacelerar. O simples fato de estar cansado já é motivo suficiente."
+  }
+ ],
+ desanimo: [
+  {
+   t: "A chama ainda existe",
+   x: "O desânimo faz parecer que tudo perdeu o sentido, mas a chama que te trouxe até aqui não se apagou — só está mais baixa, esperando ser cuidada de novo."
+  },
+  {
+   t: "Nem todo dia precisa brilhar",
+   x: "Alguns dias são só de sobreviver, e está tudo bem. Você não precisa estar motivado o tempo todo para seguir em frente — só precisa dar o próximo passo possível."
+  },
+  {
+   t: "Pequenas vitórias contam",
+   x: "O desânimo costuma esconder os pequenos progressos. Reconhecer pequenas vitórias, mesmo as óbvias, ajuda a mente a lembrar que o esforço ainda vale a pena."
+  },
+  {
+   t: "Motivação vem depois da ação",
+   x: "Esperar se sentir motivado para agir costuma ser ao contrário do que funciona. Muitas vezes, é começando — mesmo sem vontade — que a motivação aparece."
+  },
+  {
+   t: "Voltar a acreditar aos poucos",
+   x: "Não é preciso recuperar toda a esperança de uma vez. Um pequeno lampejo de acreditar já é o suficiente para dar o próximo passo hoje."
+  },
+  {
+   t: "A chama pode ser reacesa",
+   x: "Mesmo quando parece apagada, a chama do desânimo pode ser reacesa com pequenos gestos de cuidado, repetidos aos poucos, sem pressa."
+  },
+  {
+   t: "Ninguém está motivado sempre",
+   x: "Até quem parece sempre motivado tem seus dias de desânimo. O que muda é que essas pessoas seguem dando pequenos passos, mesmo sem vontade."
+  },
+  {
+   t: "Desânimo tem prazo de validade",
+   x: "O desânimo de hoje não é uma sentença permanente. Ele tende a diminuir conforme você volta a se mover, mesmo que devagar."
+  }
+ ],
+ motivacao: [
+  {
+   t: "Comece pequeno demais para falhar",
+   x: "Quando a motivação some, o segredo é diminuir a meta até ela ficar tão pequena que seja impossível não fazer. Depois, o impulso costuma vir sozinho."
+  },
+  {
+   t: "Ambiente muda tudo",
+   x: "Muitas vezes a falta de vontade não é sobre você, é sobre o ambiente ao redor. Um pequeno ajuste no espaço pode facilitar o que parecia impossível."
+  },
+  {
+   t: "Lembre do seu porquê",
+   x: "A motivação costuma sumir quando perdemos de vista o motivo por trás da tarefa. Reconectar com o \"porquê\" ajuda a mente a encontrar energia de novo."
+  },
+  {
+   t: "Progresso imperfeito ainda é progresso",
+   x: "Esperar o momento perfeito ou a energia ideal costuma travar mais do que ajudar. Fazer algo imperfeito hoje vale mais do que esperar por um dia perfeito que não vem."
+  },
+  {
+   t: "Energia se constrói agindo",
+   x: "Muita gente espera ter energia para depois agir, mas geralmente é o contrário: a ação é que gera a energia. Um pequeno movimento já pode mudar seu estado."
+  },
+  {
+   t: "Disciplina antes da motivação",
+   x: "A disciplina de dar o primeiro passo, mesmo sem vontade, costuma abrir caminho para a motivação que ainda não chegou."
+  },
+  {
+   t: "Metas pequenas movem mais",
+   x: "Metas grandes paralisam quando a motivação está baixa. Reduzir a meta ao mínimo possível facilita o primeiro movimento."
+  },
+  {
+   t: "O hábito sustenta quando a vontade falha",
+   x: "Nos dias sem vontade, é o hábito que sustenta o progresso. Continuar pequeno, mesmo sem ânimo, já é suficiente."
+  }
+ ],
+ raiva: [
+  {
+   t: "A raiva também tem uma mensagem",
+   x: "Por trás da raiva quase sempre existe uma necessidade não atendida ou um limite que foi ultrapassado. Ouvir essa mensagem, sem agir no calor do momento, é o primeiro passo."
+  },
+  {
+   t: "Espaço entre o estímulo e a resposta",
+   x: "Entre o que acontece e sua reação existe um pequeno espaço — é nele que mora sua liberdade de escolher como agir, em vez de apenas reagir."
+  },
+  {
+   t: "Liberar sem machucar",
+   x: "A raiva represada machuca por dentro, mas liberá-la sobre os outros machuca por fora. Existem formas de soltar essa energia sem ferir ninguém, nem a você mesmo."
+  },
+  {
+   t: "Limites, não explosões",
+   x: "Muitas vezes a raiva aparece quando um limite não foi colocado a tempo. Aprender a dizer não, com firmeza e calma, evita que a raiva precise gritar por você."
+  },
+  {
+   t: "Depois da tempestade",
+   x: "A raiva, como qualquer tempestade, também passa. O que fica depois é a forma como você lidou com ela — e isso você ainda pode escolher agora."
+  },
+  {
+   t: "Nomear antes de reagir",
+   x: "Dar nome ao que você sente — raiva, frustração, injustiça — já ajuda a mente a processar antes de agir por impulso."
+  },
+  {
+   t: "A raiva pede escuta, não repressão",
+   x: "Reprimir a raiva sem escutar o que ela tem a dizer só a acumula. Escutá-la com cuidado, sem agir no calor do momento, é o caminho mais saudável."
+  },
+  {
+   t: "Você pode discordar sem explodir",
+   x: "É possível discordar, se posicionar e defender um limite sem que isso vire uma explosão. A firmeza não precisa ser violenta."
+  }
+ ],
+ estresse: [
+  {
+   t: "Seu corpo também está no jogo",
+   x: "O estresse não vive só na mente — ele mora no corpo, nos ombros tensos, na mandíbula travada. Cuidar do corpo é também cuidar da mente."
+  },
+  {
+   t: "Nem tudo precisa ser agora",
+   x: "O estresse costuma fazer tudo parecer urgente ao mesmo tempo. Mas quase nada precisa ser resolvido neste exato minuto — dê um passo de cada vez."
+  },
+  {
+   t: "Sobrecarga tem limite",
+   x: "Seu corpo e sua mente têm um limite de carga, mesmo que você tente ignorar. Reconhecer isso cedo evita que o estresse vire algo mais difícil de lidar."
+  },
+  {
+   t: "Micro-pausas, grande diferença",
+   x: "Você não precisa de um dia inteiro de folga para aliviar o estresse. Pequenas pausas, feitas com frequência, já fazem diferença real no seu dia."
+  },
+  {
+   t: "Organizar para respirar",
+   x: "Parte do estresse vem da sensação de caos. Organizar mesmo que uma pequena parte do seu dia ou espaço pode devolver uma sensação real de controle."
+  },
+  {
+   t: "Nem tudo é emergência",
+   x: "O corpo estressado trata tudo como emergência. Fazer uma pausa e perguntar \"isso é realmente urgente?\" já ajuda a mente a se organizar."
+  },
+  {
+   t: "Um item por vez",
+   x: "Tentar resolver tudo ao mesmo tempo é receita para mais estresse. Escolher um item por vez, com calma, rende mais do que abraçar tudo de uma vez."
+  },
+  {
+   t: "O corpo avisa antes da mente perceber",
+   x: "Muitas vezes o corpo já está no limite antes da mente admitir isso. Prestar atenção aos sinais físicos evita que o estresse vire algo maior."
+  }
+ ],
+ inseguranca: [
+  {
+   t: "Você não precisa se comparar",
+   x: "Comparar seu começo com o meio da jornada de outra pessoa nunca é justo com você. Seu caminho tem seu próprio ritmo, e ele também é válido."
+  },
+  {
+   t: "Sua voz interna pode mudar",
+   x: "A forma como você fala consigo mesmo molda o que você acredita ser capaz. Trocar a autocrítica por gentileza muda, aos poucos, sua relação com você mesmo."
+  },
+  {
+   t: "Imperfeito e ainda assim valioso",
+   x: "Você não precisa ser perfeito para merecer respeito, amor ou reconhecimento. Seu valor não depende de acertar tudo — ele já existe, mesmo em meio às falhas."
+  },
+  {
+   t: "Confiança se treina",
+   x: "A confiança não é um traço fixo — ela cresce com pequenas provas que você dá a si mesmo. Cada pequena ação vencida constrói um pouco mais dela."
+  },
+  {
+   t: "Você é mais do que essa dúvida",
+   x: "A insegurança faz parecer que uma única dúvida define tudo o que você é. Mas você é muito mais amplo do que qualquer pensamento passageiro sobre si mesmo."
+  },
+  {
+   t: "Ninguém tem tudo resolvido",
+   x: "Por mais seguras que as pessoas pareçam por fora, quase todo mundo lida com alguma insegurança por dentro. Você não está atrasado nem sozinho nisso."
+  },
+  {
+   t: "Seu valor não depende de aprovação",
+   x: "Buscar aprovação o tempo todo é cansativo e nunca é suficiente. Seu valor já existe, independente de quantas pessoas reconhecem isso."
+  },
+  {
+   t: "Comparar-se rouba sua energia",
+   x: "Cada minuto gasto se comparando é um minuto a menos investido em quem você está se tornando. Volte o foco para o seu próprio caminho."
+  }
+ ],
+ esperanca: [
+  {
+   t: "A esperança já está em movimento",
+   x: "Só o fato de você estar aqui, buscando cuidado, já é um sinal de esperança agindo. Ela não precisa ser grande para ser real — só precisa existir."
+  },
+  {
+   t: "Sementes que ainda não brotaram",
+   x: "Nem toda semente brota no mesmo dia em que é plantada. Alguns dos seus esforços ainda estão em silêncio, crescendo por baixo, esperando a hora certa."
+  },
+  {
+   t: "Um futuro possível",
+   x: "Por mais difícil que o presente pareça, ele não é a única versão possível do futuro. Pequenas escolhas de hoje já começam a moldar um caminho diferente."
+  },
+  {
+   t: "Esperança não é ingenuidade",
+   x: "Ter esperança não significa ignorar as dificuldades reais. É reconhecer o difícil e, ainda assim, escolher acreditar que algo melhor também é possível."
+  },
+  {
+   t: "Continue plantando",
+   x: "Cada pequeno esforço que você faz hoje é uma semente para o amanhã, mesmo que o fruto ainda não seja visível. Continue plantando, com paciência."
+  },
+  {
+   t: "A esperança cabe em pequenos gestos",
+   x: "Não é preciso um grande sinal para acreditar de novo. Um pequeno gesto de cuidado, hoje, já é a esperança em movimento."
+  },
+  {
+   t: "O amanhã ainda está em branco",
+   x: "Nada está definitivamente escrito sobre o seu amanhã. Ele ainda está em branco, esperando as escolhas que você fizer hoje."
+  },
+  {
+   t: "Esperança se cultiva todo dia",
+   x: "Assim como um jardim, a esperança precisa de cuidado diário para florescer. Pequenos gestos de fé, repetidos, sustentam essa esperança viva."
+  }
+ ],
+ gratidao: [
+  {
+   t: "O pequeno também é grande",
+   x: "A gratidão não precisa de grandes motivos para existir. Um café quente, um raio de sol, uma mensagem gentil — os pequenos detalhes também merecem ser celebrados."
+  },
+  {
+   t: "Gratidão muda o foco",
+   x: "A mente tende a notar mais o que falta do que o que já existe. Praticar gratidão treina o foco a enxergar também o que já está bem."
+  },
+  {
+   t: "Gratidão em meio à dificuldade",
+   x: "Mesmo em dias difíceis, é possível encontrar pequenos motivos de gratidão. Isso não apaga a dificuldade, mas equilibra o peso dela com um pouco de leveza."
+  },
+  {
+   t: "Gratidão pelas pessoas",
+   x: "Entre tudo o que a vida oferece, as pessoas costumam ser o que mais merece gratidão. Reconhecer isso, e dizer isso a elas, fortalece os laços que você tem."
+  },
+  {
+   t: "Gratidão pelo que você já superou",
+   x: "Olhar para trás e reconhecer o quanto você já superou é também um ato de gratidão. Você chegou até aqui carregando mais força do que imagina."
+  },
+  {
+   t: "Gratidão como prática, não reação",
+   x: "Gratidão não precisa esperar algo extraordinário para existir. Praticá-la mesmo em dias comuns fortalece essa capacidade para os dias difíceis também."
+  },
+  {
+   t: "O que você tem hoje também é conquista",
+   x: "Antes de pensar no que falta, vale lembrar de tudo que hoje representa uma conquista construída com esforço, tempo e paciência."
+  },
+  {
+   t: "Gratidão pelo hoje",
+   x: "Você não sabe o que o futuro reserva, mas sabe que hoje aconteceu, com seus detalhes simples. Isso já merece gratidão."
+  }
+ ]
+};
+
+const PLANS = {
+
+ ansiedade: [
+  [
+   "Sinta os pés no chão por 10 segundos",
+   "Nomeie 3 coisas que você vê agora",
+   "Solte os ombros e a mandíbula"
+  ],
+  [
+   "Conte 5 respirações lentas",
+   "Beba um copo de água devagar",
+   "Abra uma janela e sinta o ar"
+  ],
+  [
+   "Afaste-se da tela por 5 minutos",
+   "Alongue o pescoço lentamente",
+   "Escreva o que está te preocupando"
+  ],
+  [
+   "Toque em 3 objetos ao redor",
+   "Descreva as texturas em voz baixa",
+   "Respire fundo antes de continuar"
+  ],
+  [
+   "Foque em uma única tarefa por vez",
+   "Solte os punhos e as mãos",
+   "Repita em silêncio: estou seguro agora"
+  ]
+ ],
+ medo: [
+  [
+   "Nomeie o medo em voz alta",
+   "Pergunte: o que é fato e o que é hipótese?",
+   "Dê um passo pequeno, mesmo que trema"
+  ],
+  [
+   "Escreva o pior cenário — e o mais provável",
+   "Respire fundo 3 vezes",
+   "Fale com alguém de confiança sobre isso"
+  ],
+  [
+   "Escolha o menor passo possível",
+   "Dê esse passo nos próximos 10 minutos",
+   "Comemore mesmo o progresso pequeno"
+  ],
+  [
+   "Escreva exatamente o que te assusta",
+   "Pergunte: isso já aconteceu antes?",
+   "Planeje um pequeno passo de enfrentamento"
+  ],
+  [
+   "Relembre uma vez que você venceu o medo",
+   "Escolha uma ação de hoje, por menor que seja",
+   "Aja antes que a mente reconsidere"
+  ]
+ ],
+ tristeza: [
+  [
+   "Permita-se chorar, se precisar",
+   "Escreva o que está doendo",
+   "Seja gentil consigo mesmo hoje"
+  ],
+  [
+   "Envolva-se em algo aconchegante",
+   "Ouça uma música que acalma",
+   "Beba algo quente devagar"
+  ],
+  [
+   "Reserve 10 minutos só para sentir, sem distrações",
+   "Escreva sem filtro o que vier",
+   "Depois, faça algo que te acalme"
+  ],
+  [
+   "Escolha um pequeno ritual de conforto",
+   "Diminua as luzes ao seu redor",
+   "Respire fundo antes de dormir"
+  ],
+  [
+   "Lembre de uma vez que você superou algo parecido",
+   "Fale com alguém sobre como está se sentindo",
+   "Vá devagar com você mesmo hoje"
+  ]
+ ],
+ solidao: [
+  [
+   "Mande uma mensagem para alguém que você sente falta",
+   "Diga como está se sentindo, sem se esconder",
+   "Aceite companhia, mesmo que pequena"
+  ],
+  [
+   "Escreva 3 qualidades que você tem",
+   "Faça algo de que você gosta, sozinho e com prazer",
+   "Trate-se como trataria um bom amigo"
+  ],
+  [
+   "Reative uma conversa que ficou parada",
+   "Participe de algo em grupo, mesmo online",
+   "Seja o primeiro a puxar assunto hoje"
+  ],
+  [
+   "Escreva uma mensagem simples para alguém",
+   "Não espere a resposta perfeita para enviar",
+   "Esteja aberto a receber companhia"
+  ],
+  [
+   "Escolha uma pessoa para se reaproximar",
+   "Marque algo simples, tipo um café ou chamada",
+   "Vá com calma, sem pressão"
+  ]
+ ],
+ cansaco: [
+  [
+   "Feche os olhos por 2 minutos, sem telas",
+   "Diga não a algo que pode esperar",
+   "Durma um pouco mais cedo hoje"
+  ],
+  [
+   "Fique 5 minutos sem nenhuma tela",
+   "Respire olhando para algo distante",
+   "Evite tomar grandes decisões hoje"
+  ],
+  [
+   "Note em que momento do dia você se sente mais cansado",
+   "Reduza uma tarefa da sua lista hoje",
+   "Beba água e coma algo nutritivo"
+  ],
+  [
+   "Escolha só 1 prioridade para hoje",
+   "Elimine 2 tarefas que podem esperar",
+   "Descanse sem culpa depois"
+  ],
+  [
+   "Durma ou descanse 20 minutos, se possível",
+   "Saia um pouco do ambiente atual",
+   "Evite excesso de estímulo à noite"
+  ]
+ ],
+ desanimo: [
+  [
+   "Relembre algo que já te empolgou antes",
+   "Faça uma tarefa bem pequena, só para movimentar",
+   "Evite se cobrar por sentir isso"
+  ],
+  [
+   "Aceite que hoje é um dia mais devagar",
+   "Faça o mínimo com gentileza consigo mesmo",
+   "Não compare seu hoje com seus melhores dias"
+  ],
+  [
+   "Liste 3 coisas que você já conseguiu essa semana",
+   "Comemore uma delas, mesmo pequena",
+   "Escolha uma próxima meta bem pequena"
+  ],
+  [
+   "Escolha a menor ação possível para começar",
+   "Comece antes de \"sentir vontade\"",
+   "Observe como se sente depois de agir"
+  ],
+  [
+   "Pense em algo que já deu certo antes",
+   "Permita-se acreditar só um pouquinho hoje",
+   "Dê um passo, mesmo pequeno, na direção certa"
+  ]
+ ],
+ motivacao: [
+  [
+   "Escolha uma tarefa e reduza-a pela metade",
+   "Comprometa-se só com os primeiros 2 minutos",
+   "Continue apenas se quiser — sem obrigação"
+  ],
+  [
+   "Organize o espaço onde você vai agir",
+   "Retire uma distração por perto",
+   "Deixe pronto o que facilita o início"
+  ],
+  [
+   "Escreva por que essa tarefa importa para você",
+   "Visualize como vai se sentir ao terminar",
+   "Comece pela parte mais fácil"
+  ],
+  [
+   "Aceite fazer algo de forma imperfeita",
+   "Escolha \"feito\" em vez de \"perfeito\" por hoje",
+   "Siga em frente sem revisar demais"
+  ],
+  [
+   "Levante e se movimente por 2 minutos",
+   "Beba um copo de água",
+   "Volte à tarefa com um pequeno passo"
+  ]
+ ],
+ raiva: [
+  [
+   "Respire fundo antes de reagir",
+   "Pergunte: o que essa raiva está tentando me dizer?",
+   "Espere um pouco antes de responder"
+  ],
+  [
+   "Conte até 10 antes de responder",
+   "Saia do ambiente por alguns minutos, se possível",
+   "Escolha a resposta, não a reação automática"
+  ],
+  [
+   "Escreva tudo o que sente, sem filtro, num papel",
+   "Faça um exercício físico rápido para soltar a tensão",
+   "Depois, decida com calma o que fazer"
+  ],
+  [
+   "Identifique o limite que foi ultrapassado",
+   "Escreva como você poderia comunicar isso com calma",
+   "Pratique dizer não da próxima vez"
+  ],
+  [
+   "Respire fundo e solte os ombros",
+   "Pergunte: o que eu preciso agora?",
+   "Cuide de si antes de resolver o resto"
+  ]
+ ],
+ estresse: [
+  [
+   "Solte os ombros e a mandíbula agora",
+   "Alongue o pescoço devagar",
+   "Respire fundo 3 vezes"
+  ],
+  [
+   "Liste tudo o que está pesando",
+   "Marque só 1 coisa como prioridade real",
+   "Deixe o resto para depois, sem culpa"
+  ],
+  [
+   "Observe os sinais físicos de estresse",
+   "Reduza uma responsabilidade hoje",
+   "Peça ajuda em algo, se possível"
+  ],
+  [
+   "Faça uma pausa de 2 minutos a cada hora",
+   "Olhe para longe da tela por 20 segundos",
+   "Beba água com calma"
+  ],
+  [
+   "Organize uma pequena área ao seu redor",
+   "Escreva uma lista simples do que precisa ser feito",
+   "Risque uma coisa da lista hoje"
+  ]
+ ],
+ inseguranca: [
+  [
+   "Identifique com quem você tem se comparado",
+   "Lembre de uma conquista sua recente",
+   "Desative por hoje o que alimenta a comparação"
+  ],
+  [
+   "Note quando a autocrítica aparecer",
+   "Troque a frase dura por uma mais gentil",
+   "Fale consigo como falaria com alguém que ama"
+  ],
+  [
+   "Lembre que erros fazem parte de crescer",
+   "Perdoe uma falha recente sua",
+   "Reconheça um esforço, mesmo sem resultado perfeito"
+  ],
+  [
+   "Lembre de uma vez que você se superou",
+   "Escolha um pequeno desafio para hoje",
+   "Reconheça o esforço, não só o resultado"
+  ],
+  [
+   "Escreva a dúvida que está te incomodando",
+   "Escreva 3 fatos que contradizem essa dúvida",
+   "Releia isso sempre que precisar"
+  ]
+ ],
+ esperanca: [
+  [
+   "Note o que te trouxe até aqui hoje",
+   "Escreva uma coisa que você espera para essa semana",
+   "Dê um passo pequeno na direção dela"
+  ],
+  [
+   "Lembre de um esforço recente seu",
+   "Confie no tempo que ele ainda precisa",
+   "Continue regando, mesmo sem ver o fruto ainda"
+  ],
+  [
+   "Visualize como você quer se sentir em 1 ano",
+   "Escolha 1 pequena ação alinhada a esse futuro",
+   "Comemore o simples fato de sonhar de novo"
+  ],
+  [
+   "Reconheça o que está difícil, sem minimizar",
+   "Escreva o que ainda te faz acreditar",
+   "Segure os dois ao mesmo tempo, com gentileza"
+  ],
+  [
+   "Escolha uma ação pequena e consistente para hoje",
+   "Faça-a com atenção, sem pressa",
+   "Confie no processo, mesmo sem ver o resultado"
+  ]
+ ],
+ gratidao: [
+  [
+   "Note 3 pequenas coisas boas de hoje",
+   "Agradeça em voz alta por uma delas",
+   "Guarde esse momento na memória"
+  ],
+  [
+   "Escreva 3 coisas boas do seu dia",
+   "Releia essa lista antes de dormir",
+   "Repita esse hábito amanhã"
+  ],
+  [
+   "Encontre 1 motivo de gratidão mesmo num dia difícil",
+   "Anote-o sem minimizar o resto que dói",
+   "Volte a ele quando precisar de leveza"
+  ],
+  [
+   "Pense em alguém importante para você",
+   "Escreva por que você é grato a essa pessoa",
+   "Diga isso a ela, de algum jeito, hoje"
+  ],
+  [
+   "Lembre de um desafio que você já superou",
+   "Agradeça a si mesmo por isso",
+   "Carregue essa força para o desafio de hoje"
+  ]
+ ]
+};
+
+const VERSES = {
+
+ ansiedade: [
+  {
+   ref: "Filipenses 4:6-7",
+   text: "Não andeis ansiosos por coisa alguma; em tudo, apresentai vossas petições a Deus."
+  },
+  {
+   ref: "Salmos 94:19",
+   text: "Nos meus pensamentos ansiosos, teu consolo trouxe alegria à minha alma."
+  },
+  {
+   ref: "Mateus 6:34",
+   text: "Não vos preocupeis com o dia de amanhã, pois ele cuidará de si mesmo."
+  },
+  {
+   ref: "Isaías 41:10",
+   text: "Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus."
+  },
+  {
+   ref: "Salmos 23:4",
+   text: "Ainda que eu andasse pelo vale da sombra da morte, não temeria mal algum."
+  },
+  {
+   ref: "João 14:27",
+   text: "Deixo-vos a paz; não se turbe o vosso coração, nem se atemorize."
+  }
+ ],
+ medo: [
+  {
+   ref: "2 Timóteo 1:7",
+   text: "Deus não nos deu espírito de covardia, mas de poder, amor e domínio próprio."
+  },
+  {
+   ref: "Salmos 27:1",
+   text: "O Senhor é a minha luz e a minha salvação; a quem temerei?"
+  },
+  {
+   ref: "Josué 1:9",
+   text: "Sê forte e corajoso; não temas, nem te espantes, pois o Senhor está contigo."
+  },
+  {
+   ref: "Isaías 41:13",
+   text: "Eu, o Senhor teu Deus, te seguro pela tua mão direita e te digo: não temas."
+  },
+  {
+   ref: "Filipenses 4:13",
+   text: "Tudo posso naquele que me fortalece."
+  },
+  {
+   ref: "Salmos 56:3",
+   text: "No dia em que eu temer, em ti confiarei."
+  }
+ ],
+ tristeza: [
+  {
+   ref: "Salmos 34:18",
+   text: "Perto está o Senhor dos que têm o coração quebrantado."
+  },
+  {
+   ref: "Salmos 30:5",
+   text: "O choro pode durar uma noite, mas a alegria vem pela manhã."
+  },
+  {
+   ref: "Eclesiastes 3:4",
+   text: "Há tempo de chorar e tempo de rir; tempo de prantear e tempo de dançar."
+  },
+  {
+   ref: "Mateus 5:4",
+   text: "Bem-aventurados os que choram, porque eles serão consolados."
+  },
+  {
+   ref: "Salmos 147:3",
+   text: "Ele sara os quebrantados de coração e lhes ata as feridas."
+  },
+  {
+   ref: "Isaías 61:3",
+   text: "Deus dá beleza em lugar de cinzas, e alegria em lugar de tristeza."
+  }
+ ],
+ solidao: [
+  {
+   ref: "Deuteronômio 31:6",
+   text: "Não te deixarei, nem te desampararei."
+  },
+  {
+   ref: "Salmos 68:6",
+   text: "Deus faz que o solitário viva em família."
+  },
+  {
+   ref: "Eclesiastes 4:9-10",
+   text: "Melhor é serem dois do que um, pois têm melhor paga do seu trabalho."
+  },
+  {
+   ref: "Provérbios 18:24",
+   text: "Há amigo mais chegado do que um irmão."
+  },
+  {
+   ref: "Gênesis 2:18",
+   text: "Não é bom que o homem esteja só."
+  },
+  {
+   ref: "Mateus 28:20",
+   text: "Eis que eu estou convosco todos os dias, até a consumação dos séculos."
+  }
+ ],
+ cansaco: [
+  {
+   ref: "Mateus 11:28",
+   text: "Vinde a mim todos os que estais cansados e sobrecarregados, e eu vos aliviarei."
+  },
+  {
+   ref: "Êxodo 33:14",
+   text: "Minha presença irá contigo, e eu te darei descanso."
+  },
+  {
+   ref: "Salmos 62:1",
+   text: "Somente em Deus repousa a minha alma; dele vem a minha salvação."
+  },
+  {
+   ref: "Salmos 23:2-3",
+   text: "Deitar-me faz em verdes pastos; guia-me mansamente e refrigera a minha alma."
+  },
+  {
+   ref: "Marcos 6:31",
+   text: "Vinde vós à parte, para um lugar deserto, e repousai um pouco."
+  },
+  {
+   ref: "Salmos 121:4",
+   text: "Eis que não dormita nem dorme o guarda de Israel."
+  }
+ ],
+ desanimo: [
+  {
+   ref: "Gálatas 6:9",
+   text: "Não nos cansemos de fazer o bem, pois no tempo próprio colheremos."
+  },
+  {
+   ref: "Isaías 40:29",
+   text: "Ele dá força ao cansado e multiplica as forças ao que não tem nenhum vigor."
+  },
+  {
+   ref: "Zacarias 4:10",
+   text: "Quem despreza o dia dos pequenos começos?"
+  },
+  {
+   ref: "Provérbios 3:5-6",
+   text: "Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento."
+  },
+  {
+   ref: "Jeremias 29:11",
+   text: "Porque eu bem sei os pensamentos que penso a vosso respeito, pensamentos de paz."
+  },
+  {
+   ref: "Salmos 42:11",
+   text: "Por que estás abatida, ó minha alma? Espera em Deus, pois ainda o louvarei."
+  }
+ ],
+ motivacao: [
+  {
+   ref: "Colossenses 3:23",
+   text: "Tudo o que fizerdes, fazei-o de todo o coração."
+  },
+  {
+   ref: "Eclesiastes 9:10",
+   text: "Tudo quanto te vier à mão para fazer, faze-o conforme as tuas forças."
+  },
+  {
+   ref: "Filipenses 3:14",
+   text: "Prossigo para o alvo, pelo prêmio da soberana vocação de Deus."
+  },
+  {
+   ref: "Filipenses 1:6",
+   text: "Aquele que começou boa obra em vós a aperfeiçoará."
+  },
+  {
+   ref: "Isaías 40:31",
+   text: "Os que esperam no Senhor renovarão as forças; subirão com asas como águias."
+  },
+  {
+   ref: "Gálatas 6:9",
+   text: "E não nos cansemos de fazer o bem, porque a seu tempo colheremos."
+  }
+ ],
+ raiva: [
+  {
+   ref: "Efésios 4:26",
+   text: "Irai-vos, e não pequeis; não se ponha o sol sobre a vossa ira."
+  },
+  {
+   ref: "Tiago 1:19-20",
+   text: "Seja todo homem pronto para ouvir, tardio para falar, tardio para se irar."
+  },
+  {
+   ref: "Provérbios 15:1",
+   text: "A resposta branda desvia o furor, mas a palavra dura suscita a ira."
+  },
+  {
+   ref: "Mateus 5:37",
+   text: "Seja, pois, o vosso falar: sim, sim; não, não."
+  },
+  {
+   ref: "Salmos 37:8",
+   text: "Descansa no Senhor e espera nele; não te indignes."
+  },
+  {
+   ref: "Colossenses 3:8",
+   text: "Despojai-vos também de tudo isto: ira, cólera, malícia."
+  }
+ ],
+ estresse: [
+  {
+   ref: "1 Pedro 5:7",
+   text: "Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós."
+  },
+  {
+   ref: "Mateus 6:34",
+   text: "Basta a cada dia o seu mal."
+  },
+  {
+   ref: "Êxodo 18:18",
+   text: "Certamente desfalecerás, assim tu, como este povo contigo; porque este negócio te é mui pesado."
+  },
+  {
+   ref: "Salmos 46:10",
+   text: "Aquietai-vos, e sabei que eu sou Deus."
+  },
+  {
+   ref: "1 Coríntios 14:33",
+   text: "Deus não é Deus de confusão, senão de paz."
+  },
+  {
+   ref: "Salmos 55:22",
+   text: "Entrega o teu cuidado ao Senhor, e ele te sustentará."
+  }
+ ],
+ inseguranca: [
+  {
+   ref: "Gálatas 6:4",
+   text: "Prove cada um a sua própria obra, e terá glória só em si mesmo."
+  },
+  {
+   ref: "Salmos 139:14",
+   text: "Te louvarei, porque de um modo terrível e maravilhoso fui formado."
+  },
+  {
+   ref: "Romanos 8:1",
+   text: "Nenhuma condenação há para os que estão em Cristo Jesus."
+  },
+  {
+   ref: "2 Coríntios 3:5",
+   text: "A nossa suficiência vem de Deus."
+  },
+  {
+   ref: "Efésios 2:10",
+   text: "Somos feitura sua, criados em Cristo Jesus para boas obras."
+  },
+  {
+   ref: "Salmos 139:1",
+   text: "Senhor, tu me sondas e me conheces."
+  }
+ ],
+ esperanca: [
+  {
+   ref: "Romanos 15:13",
+   text: "O Deus de esperança vos encha de todo o gozo e paz em crença."
+  },
+  {
+   ref: "Gálatas 6:9",
+   text: "Não nos cansemos de fazer o bem, pois no tempo próprio colheremos."
+  },
+  {
+   ref: "Jeremias 29:11",
+   text: "Porque eu bem sei os pensamentos que penso a vosso respeito, pensamentos de paz."
+  },
+  {
+   ref: "Hebreus 11:1",
+   text: "Ora, a fé é o firme fundamento das coisas que se esperam."
+  },
+  {
+   ref: "Salmos 126:5",
+   text: "Os que semeiam em lágrimas, com alegria ceifarão."
+  },
+  {
+   ref: "Romanos 8:25",
+   text: "Se esperamos o que não vemos, com paciência o esperamos."
+  }
+ ],
+ gratidao: [
+  {
+   ref: "1 Tessalonicenses 5:18",
+   text: "Em tudo dai graças, porque esta é a vontade de Deus."
+  },
+  {
+   ref: "Salmos 100:4",
+   text: "Entrai pelas suas portas com ação de graças, e em seus átrios com louvor."
+  },
+  {
+   ref: "Filipenses 4:11-12",
+   text: "Aprendi a contentar-me, seja qual for o estado em que me encontre."
+  },
+  {
+   ref: "Filipenses 1:3",
+   text: "Dou graças ao meu Deus todas as vezes que me lembro de vós."
+  },
+  {
+   ref: "Salmos 103:2",
+   text: "Bendize, ó minha alma, ao Senhor, e não te esqueças de nenhum de seus benefícios."
+  },
+  {
+   ref: "Colossenses 3:15",
+   text: "E sede agradecidos."
+  }
+ ]
+};
+
+const PHRASES = {
+
+ ansiedade: [
+  "Você não precisa resolver tudo hoje.",
+  "Isso também vai passar.",
+  "Respirar fundo também é produtivo.",
+  "Você está mais seguro do que sua mente diz.",
+  "Um passo de cada vez já é suficiente.",
+  "Você é mais forte do que a ansiedade te faz acreditar.",
+  "Um momento de calma já é uma vitória."
+ ],
+ medo: [
+  "Você pode sentir medo e ainda assim seguir em frente.",
+  "Você já sobreviveu a tudo que temeu antes.",
+  "Um passo pequeno também é coragem.",
+  "Olhar de frente é o começo da liberdade.",
+  "Você é mais capaz do que o medo te faz acreditar.",
+  "Coragem é agir apesar do medo, não a ausência dele.",
+  "Você pode tremer e ainda assim seguir em frente."
+ ],
+ tristeza: [
+  "Está tudo bem não estar bem hoje.",
+  "Depois da chuva, sempre vem uma pausa de sol.",
+  "Sentir tudo isso também faz parte de estar vivo.",
+  "Você merece cuidado, especialmente hoje.",
+  "Isso dói agora, mas não vai doer para sempre.",
+  "Está tudo bem sentir isso agora.",
+  "Sua dor faz sentido, e ela também vai se transformar."
+ ],
+ solidao: [
+  "Você importa, mesmo quando não parece.",
+  "Sua própria companhia também é valiosa.",
+  "Uma mensagem pode ser o início de uma ponte.",
+  "Você não precisa atravessar isso sozinho.",
+  "Cada pequeno contato conta mais do que parece.",
+  "Você é digno de companhia e de carinho.",
+  "Uma pequena conexão hoje já é um começo."
+ ],
+ cansaco: [
+  "Descansar também é produtivo.",
+  "Silêncio também é um tipo de cuidado.",
+  "Seu corpo está pedindo, é só ouvir.",
+  "Fazer menos hoje também é avançar.",
+  "Você também precisa ser cuidado.",
+  "Descansar também é seguir em frente.",
+  "Você não precisa se esgotar para provar seu valor."
+ ],
+ desanimo: [
+  "A chama ainda está aí, mesmo baixa.",
+  "Hoje só precisa ser hoje.",
+  "Pequenos passos ainda são passos.",
+  "Comece pequeno, o resto se ajeita andando.",
+  "Um pouco de esperança já é suficiente para hoje.",
+  "Esse desânimo também vai passar.",
+  "Você não precisa se sentir bem para continuar tentando."
+ ],
+ motivacao: [
+  "Você não precisa de motivação para começar, só de um primeiro passo.",
+  "Facilite o começo, o resto flui.",
+  "Lembre por que você começou.",
+  "Feito é melhor do que perfeito.",
+  "Mover o corpo pode mover a mente.",
+  "Um pequeno passo hoje já é motivação suficiente.",
+  "Você não precisa querer, só precisa começar."
+ ],
+ raiva: [
+  "Sua raiva tem uma mensagem — ouça antes de agir.",
+  "Você pode escolher sua resposta.",
+  "Você pode soltar a raiva sem se machucar.",
+  "Um limite claro previne uma explosão.",
+  "Depois da tempestade, o cuidado ainda é possível.",
+  "Sua raiva pode ser ouvida sem precisar explodir.",
+  "Respirar antes de reagir já é uma escolha poderosa."
+ ],
+ estresse: [
+  "Seu corpo está pedindo uma pausa.",
+  "Você não precisa resolver tudo agora.",
+  "Pedir ajuda também é força.",
+  "Pequenas pausas também curam.",
+  "Organizar um pouco já traz mais calma.",
+  "Uma pausa agora vale mais do que continuar no limite.",
+  "Você não precisa carregar tudo de uma vez."
+ ],
+ inseguranca: [
+  "Seu caminho não precisa parecer com o de ninguém.",
+  "Fale consigo com a mesma gentileza que oferece aos outros.",
+  "Você não precisa ser perfeito para ser valioso.",
+  "A confiança se constrói passo a passo.",
+  "Você é maior do que essa dúvida específica.",
+  "Sua insegurança não define sua capacidade.",
+  "Você está mais preparado do que imagina."
+ ],
+ esperanca: [
+  "Você já está em movimento, mesmo devagar.",
+  "Nem tudo que você planta brota no mesmo dia.",
+  "O futuro ainda está sendo escrito.",
+  "Você pode reconhecer o difícil e ainda ter esperança.",
+  "Continue plantando — a colheita tem seu tempo.",
+  "A esperança já é um passo na direção certa.",
+  "Coisas boas ainda estão por vir."
+ ],
+ gratidao: [
+  "O pequeno também merece ser celebrado.",
+  "O que você agradece, cresce.",
+  "Mesmo nos dias difíceis, existe algo para agradecer.",
+  "As pessoas ao seu redor merecem sua gratidão.",
+  "Você já superou mais do que imagina.",
+  "Gratidão transforma o comum em especial.",
+  "Hoje também merece ser celebrado."
+ ]
+};
+
+const CHALLENGES = {
+
+ ansiedade: [
+  "Escreva num papel a única coisa que está sob o seu controle agora.",
+  "Mande uma mensagem de voz contando como você está, sem editar as palavras.",
+  "Escolha uma preocupação e pergunte: isso está no meu controle agora?",
+  "Passe 3 minutos sem celular, só observando o ambiente ao redor.",
+  "Liste uma coisa boa que aconteceu nas últimas 24 horas."
+ ],
+ medo: [
+  "Faça hoje uma coisa pequena que o medo tem te impedido de fazer.",
+  "Escreva uma carta curta para o seu eu de daqui a um ano.",
+  "Envie a mensagem, faça a ligação ou marque o horário que você tem adiado.",
+  "Converse com alguém sobre um medo que você nunca disse em voz alta.",
+  "Faça algo hoje que você vinha adiando por medo do resultado."
+ ],
+ tristeza: [
+  "Faça algo pequeno e gentil só para você, sem culpa.",
+  "Anote 3 coisas simples que ainda te trazem algum conforto.",
+  "Ligue para alguém que sempre te faz sentir mais leve.",
+  "Prepare algo quentinho para comer ou beber com calma.",
+  "Escreva uma mensagem de carinho para você mesmo, como se fosse para um amigo."
+ ],
+ solidao: [
+  "Ligue para alguém só para dizer \"estava pensando em você\".",
+  "Convide alguém para um café ou uma ligação nesta semana.",
+  "Comente ou responda a alguém que você tem evitado falar.",
+  "Passe 20 minutos em um lugar com outras pessoas por perto, mesmo em silêncio.",
+  "Envie um \"oi, como você está?\" para alguém que você não fala há um tempo."
+ ],
+ cansaco: [
+  "Cancele ou adie um compromisso que não é essencial hoje.",
+  "Desligue as notificações do celular por 1 hora hoje.",
+  "Escreva 3 coisas que estão pesando na sua mente agora, para tirá-las de dentro.",
+  "Diga não a um pedido que vai te sobrecarregar essa semana.",
+  "Reserve 15 minutos hoje só para não fazer nada."
+ ],
+ desanimo: [
+  "Escolha uma micro-tarefa de 5 minutos e conclua ela hoje.",
+  "Escreva uma coisa que você já superou e que parecia impossível.",
+  "Comemore hoje algo que você fez, por menor que pareça.",
+  "Faça os primeiros 5 minutos de algo que você tem adiado.",
+  "Escreva algo que você quer voltar a acreditar sobre si mesmo."
+ ],
+ motivacao: [
+  "Faça os primeiros 2 minutos de algo que você vem adiando.",
+  "Prepare o ambiente hoje à noite para a tarefa de amanhã.",
+  "Escreva seu principal objetivo do mês em um lugar visível.",
+  "Termine uma tarefa hoje sem revisar mais de uma vez.",
+  "Faça 2 minutos de movimento antes de voltar à sua tarefa."
+ ],
+ raiva: [
+  "Escreva o que te deixou com raiva sem se censurar, depois releia com calma.",
+  "Da próxima vez que sentir raiva, conte até 10 antes de agir.",
+  "Faça 20 polichinelos ou uma caminhada rápida para descarregar a tensão.",
+  "Diga não a algo hoje, com firmeza e sem se justificar demais.",
+  "Faça as pazes com alguém, mesmo que só dentro de você."
+ ],
+ estresse: [
+  "Faça uma pausa de 5 minutos sem nenhuma tarefa no meio do seu dia.",
+  "Escolha 1 tarefa e adie o resto para amanhã sem culpa.",
+  "Peça ajuda em uma tarefa que está pesando demais essa semana.",
+  "Programe 3 pausas de 2 minutos ao longo do seu dia hoje.",
+  "Organize por 10 minutos um espaço pequeno que está te incomodando."
+ ],
+ inseguranca: [
+  "Fique 1 dia sem comparar seu progresso com o de outras pessoas.",
+  "Escreva 3 qualidades suas que você raramente reconhece.",
+  "Perdoe-se hoje por algo que você vem se cobrando demais.",
+  "Faça algo pequeno hoje que exige um pouco de coragem.",
+  "Escreva uma carta de encorajamento para você mesmo, como se fosse de um amigo."
+ ],
+ esperanca: [
+  "Escreva 3 coisas que você está esperando com carinho para o futuro.",
+  "Continue hoje algo que você já começou, mesmo sem ver resultado ainda.",
+  "Escreva como você gostaria que fosse o seu próximo ano.",
+  "Compartilhe com alguém algo que ainda te dá esperança.",
+  "Faça hoje uma pequena ação que constrói o futuro que você quer."
+ ],
+ gratidao: [
+  "Agradeça a alguém por algo específico que ela fez por você.",
+  "Mantenha por 7 dias uma lista diária de 3 gratidões.",
+  "Encontre 1 coisa boa mesmo dentro de um dia difícil.",
+  "Envie uma mensagem de gratidão para alguém especial hoje.",
+  "Escreva uma carta de agradecimento para o seu eu do passado."
+ ]
 };
 
 /* ============================================================
@@ -838,27 +2058,52 @@ function dayOfYear(){
 }
 
 function buildPackage(){
-  const variantIndex = dayOfYear() % 5;
-  state.variantIndex = variantIndex;
-  const pkg = CONTENT[state.emotionId][variantIndex];
-  const breathing = BREATHING[variantIndex];
-  const video = VIDEOS[variantIndex];
+  const doy = dayOfYear();
+  const emoIdx = EMOTIONS.findIndex(e => e.id === state.emotionId);
 
-  document.getElementById('pkgTitle').textContent = pkg.t;
-  document.getElementById('pkgText').textContent = pkg.x;
+  /* Cada campo tem seu próprio "pool" e seu próprio ritmo de rotação.
+     Como os tamanhos dos pools (8, 5, 6, 7, 5) e os multiplicadores usados
+     são escolhidos para não repetirem juntos, a combinação completa só
+     se repete depois de ~840 dias — bem além dos 120 dias pedidos. */
+  const msgs = MESSAGES[state.emotionId];
+  const plans = PLANS[state.emotionId];
+  const verses = VERSES[state.emotionId];
+  const phrases = PHRASES[state.emotionId];
+  const challenges = CHALLENGES[state.emotionId];
+
+  const msgIdx       = mod(doy*3 + emoIdx*5, msgs.length);
+  const planIdx      = mod(doy*2 + emoIdx,   plans.length);
+  const verseIdx     = mod(doy*5 + emoIdx*2, verses.length);
+  const phraseIdx    = mod(doy*4 + emoIdx*3, phrases.length);
+  const challengeIdx = mod(doy*3 + emoIdx*4, challenges.length);
+  const breathIdx    = mod(doy*7 + emoIdx,   BREATHING.length);
+  const videoIdx     = mod(doy*11 + emoIdx*2, VIDEOS.length);
+
+  state.variantIndex = breathIdx; /* usado pela respiração guiada em tela cheia */
+
+  const msg = msgs[msgIdx];
+  const plan = plans[planIdx];
+  const verse = verses[verseIdx];
+  const phrase = phrases[phraseIdx];
+  const challenge = challenges[challengeIdx];
+  const breathing = BREATHING[breathIdx];
+  const video = VIDEOS[videoIdx];
+
+  document.getElementById('pkgTitle').textContent = msg.t;
+  document.getElementById('pkgText').textContent = msg.x;
 
   const planEl = document.getElementById('pkgPlan');
   planEl.innerHTML='';
-  pkg.p.forEach((step,i)=>{
+  plan.forEach((step,i)=>{
     const li=document.createElement('li');
     li.innerHTML='<span class="plan-num">'+(i+1)+'</span><span>'+step+'</span>';
     planEl.appendChild(li);
   });
 
-  document.getElementById('verseText').textContent = '"'+pkg.v.text+'"';
-  document.getElementById('verseRef').textContent = pkg.v.ref;
-  document.getElementById('pkgPhrase').textContent = '"'+pkg.f+'"';
-  document.getElementById('pkgChallenge').textContent = pkg.d;
+  document.getElementById('verseText').textContent = '"'+verse.text+'"';
+  document.getElementById('verseRef').textContent = verse.ref;
+  document.getElementById('pkgPhrase').textContent = '"'+phrase+'"';
+  document.getElementById('pkgChallenge').textContent = challenge;
   document.getElementById('pkgVideo').src = 'https://www.youtube.com/embed/' + video.id + '?rel=0&autoplay=0';
   document.getElementById('pkgVideoCaption').textContent = video.label;
 
@@ -867,6 +2112,8 @@ function buildPackage(){
   resetBreathing();
   refreshCheckinState();
 }
+
+function mod(n, m){ return ((n % m) + m) % m; }
 
 /* ============================================================
    VERSÍCULO — mostrar/ocultar (opcional)
@@ -968,6 +2215,14 @@ function completeCheckin(evt){
   try{ localStorage.setItem('respira_checkin_date', todayKey()); } catch(e){}
   burstConfetti(btn);
   refreshCheckinState();
+  setTimeout(openPromo, 900);
+}
+
+function openPromo(){
+  document.getElementById('promoOverlay').classList.add('active');
+}
+function closePromo(){
+  document.getElementById('promoOverlay').classList.remove('active');
 }
 
 function burstConfetti(originEl){
@@ -998,11 +2253,44 @@ function burstConfetti(originEl){
 }
 
 /* ============================================================
-   LISTA DE ESPERA (simulada — sem backend)
+   LISTA DE ESPERA — envia nome + e-mail via FormSubmit (AJAX)
+   Nenhuma conta necessária: o e-mail de destino já está no endpoint.
+   Cada envio chega direto na caixa de entrada configurada abaixo.
 =============================================================== */
-function submitWaitlist(evt){
+const WAITLIST_ENDPOINT = 'https://formsubmit.co/ajax/prodvisual1@gmail.com';
+
+async function submitWaitlist(evt){
   evt.preventDefault();
-  goTo('screen-success');
+  const name = document.getElementById('waitlistName').value.trim();
+  const email = document.getElementById('waitlistEmail').value.trim();
+  const btn = document.getElementById('waitlistSubmitBtn');
+  const errorEl = document.getElementById('waitlistError');
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try{
+    const res = await fetch(WAITLIST_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Accept':'application/json' },
+      body: new URLSearchParams({
+        name: name,
+        email: email,
+        _subject: 'Nova inscrição na lista de espera — Respira+',
+        _template: 'table',
+        _captcha: 'false'
+      })
+    });
+    if(!res.ok) throw new Error('Falha no envio');
+    document.getElementById('waitlistForm').reset();
+    btn.disabled = false;
+    btn.textContent = 'Confirmar minha vaga';
+    goTo('screen-success');
+  } catch(err){
+    btn.disabled = false;
+    btn.textContent = 'Confirmar minha vaga';
+    errorEl.style.display = 'block';
+  }
 }
 
 /* ============================================================
